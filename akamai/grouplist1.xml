@@ -1,0 +1,51 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<rss xmlns:atom="http://www.w3.org/2005/Atom" xmlns:itunes="http://www.itunes.com/dtds/podcast-1.0.dtd" version="2.0" xmlns:media="http://search.yahoo.com/mrss/">
+	<channel>
+		<title>OVP Flash Sample Progressive</title>
+		<link>http://www.akamai.com/</link>
+		<description>OVP Flash Sample Progressive</description>
+		<atom:link href="http://www.akamai.com/" rel="self"></atom:link>
+		<language>en</language>
+		<lastBuildDate>Fri, 27 Aug 2010 07:00:00 -0000</lastBuildDate>
+		<pubDate>Thu, 26 Aug 2010 07:00:00 -0000</pubDate>
+		<item>
+		  <title>SNN</title>
+		  <link>http://tfctvprogflashsg.edgesuite.net/snn1.smil</link>
+		  <description>SNN</description>
+		  <author>1</author>
+		  <pubDate></pubDate>
+		  <comments></comments>
+		  <guid isPermaLink="false"></guid>
+		  <media:content url="http://tfctvprogflashsg.edgesuite.net/smil/snn1.smil"></media:content>
+		  <enclosure url="http://tfctvprogflashsg.edgesuite.net/snn1.smil" length="0" type="video/flv"></enclosure>
+		  <itunes:duration>0</itunes:duration>
+		  <media:thumbnail url="http://publisherqa.edgesuite.net/1/content/52/27/Disappointed.png"></media:thumbnail>
+		</item>
+		<item>
+		  <title>Big Buck Bunny</title>
+		  <link>http://products.edgeboss.net/download/products/content/demo/video/oomt/big_buck_bunny_700k.flv</link>
+		  <description>Big Buck Bunny Sample</description>
+		  <pubDate>Fri, 27 Aug 2010 07:00:00 -0000</pubDate>
+		  <author>2</author>
+		  <comments></comments>
+		  <guid isPermaLink="false"></guid>
+		  <media:content url="http://products.edgeboss.net/download/products/content/demo/video/oomt/big_buck_bunny_700k.flv"></media:content>
+		  <enclosure url="http://products.edgeboss.net/download/products/content/demo/video/oomt/big_buck_bunny_700k.flv" length="0" type="video/flv"></enclosure>
+		  <itunes:duration>0</itunes:duration>
+		  <media:thumbnail url="http://publisherqa.edgesuite.net/1/content/52/27/Disappointed.png"></media:thumbnail>
+		</item>
+		<item>
+		  <title>Nelly Concert</title>
+		  <link>http://mediapm.edgesuite.net/edgeflash/public/debug/assets/smil/nelly2.smil</link>
+		  <description>Nelly Solo Concert</description>
+		  <pubDate></pubDate>
+		  <comments></comments>
+		  <author>3</author>
+		  <guid isPermaLink="false"></guid>
+		  <media:content url="http://mediapm.edgesuite.net/edgeflash/public/debug/assets/smil/nelly2.smil"></media:content>
+		  <enclosure url="http://mediapm.edgesuite.net/edgeflash/public/debug/assets/smil/nelly2.smil" length="0" type="video/mp4"></enclosure>
+		  <itunes:duration>0</itunes:duration>
+		  <media:thumbnail url="http://publisherqa.edgesuite.net/1/content/52/27/Disappointed.png"></media:thumbnail>
+		</item>
+	</channel>
+</rss>

@@ -1,0 +1,153 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss xmlns:atom="http://www.w3.org/2005/Atom" xmlns:itunes="http://www.itunes.com/dtds/podcast-1.0.dtd" version="2.0" xmlns:media="http://search.yahoo.com/mrss/">
+	<channel>
+		<title>OVP Flash Sample Progressive</title>
+		<link>http://www.akamai.com/</link>
+		<description>OVP Flash Sample Progressive</description>
+		<atom:link href="http://www.akamai.com/" rel="self"></atom:link>
+		<language>en</language>
+		<lastBuildDate>Fri, 27 Aug 2010 07:00:00 -0000</lastBuildDate>
+		<pubDate>Thu, 26 Aug 2010 07:00:00 -0000</pubDate>
+		<item>
+		  <title>Aguabendita</title>
+		  <link>http://184.106.129.173/newtfc/20100208-aguabendita4_sol-360.flv</link>
+		  <description>Episode 4</description>
+		  <pubDate>Tue, 27 Jul 2010 07:00:00 -0000</pubDate>
+		  <comments></comments>
+		  <guid isPermaLink="false"></guid>
+		  <media:content url="http://184.106.129.173/newtfc/20100208-aguabendita4_sol-360.flv"></media:content>
+		  <enclosure url="http://184.106.129.173/newtfc/20100208-aguabendita4_sol-360.flv" length="0" type="video/mp4"></enclosure>
+		  <itunes:duration>0</itunes:duration>
+		  <media:thumbnail url="http://184.106.129.173/test/images/aguabendita4.png"></media:thumbnail>
+		</item>
+		<item>
+		  <title>Rosalka</title>
+		  <link>http://184.106.129.173/newtfc/20100517-rosalka4_sol-360.flv</link>
+		  <description>Episode 4</description>
+		  <author>dsparaci@akamai.com (Dan Sparacio)</author>
+		  <pubDate>Fri, 27 Aug 2010 07:00:00 -0000</pubDate>
+		  <comments></comments>
+		  <guid isPermaLink="false"></guid>
+		  <media:content url="http://184.106.129.173/newtfc/20100517-rosalka4_sol-360.flv"></media:content>
+		  <enclosure url="http://184.106.129.173/newtfc/20100517-rosalka4_sol-360.flv" length="0" type="video/flv"></enclosure>
+		  <itunes:duration>0</itunes:duration>
+		  <media:thumbnail url="http://184.106.129.173/test/images/rosalka4.png"></media:thumbnail>
+		</item>
+		<item>
+		  <title>Momay</title>
+		  <link>http://184.106.129.173/newtfc/20100524-momay4_sol-360.flv</link>
+		  <description>Episode 4</description>
+		  <pubDate>Fri, 27 Aug 2010 07:00:00 -0000</pubDate>
+		  <comments></comments>
+		  <guid isPermaLink="false"></guid>
+		  <media:content url="http://184.106.129.173/newtfc/20100524-momay4_sol-360.flv"></media:content>
+		  <enclosure url="http://184.106.129.173/newtfc/20100524-momay4_sol-360.flv" length="0" type="video/flv"></enclosure>
+		  <itunes:duration>0</itunes:duration>
+		  <media:thumbnail url="http://184.106.129.173/test/images/momay4.png"></media:thumbnail>
+		</item>
+
+		<item>
+		  <title>Makaribal</title>
+		  <link>http://184.106.129.173/newtfc/20100628-magkaribal2_sol-360.flv</link>
+		  <description>Episode 2</description>
+		  <pubDate>Fri, 27 Aug 2010 07:00:00 -0000</pubDate>
+		  <comments></comments>
+		  <guid isPermaLink="false"></guid>
+		  <media:content url="http://184.106.129.173/newtfc/20100628-magkaribal2_sol-360.flv"></media:content>
+		  <enclosure url="http://184.106.129.173/newtfc/20100628-magkaribal2_sol-360.flv" length="0" type="video/flv"></enclosure>
+		  <itunes:duration>0</itunes:duration>
+		  <media:thumbnail url="http://184.106.129.173/test/images/magkaribal2.png"></media:thumbnail>
+		</item>
+
+		<item>
+		  <title>Magkaribal</title>
+		  <link>http://184.106.129.173/newtfc/20100628-magkaribal5_sol-360.flv</link>
+		  <description>Episode 5</description>
+		  <pubDate>Fri, 27 Aug 2010 07:00:00 -0000</pubDate>
+		  <comments></comments>
+		  <guid isPermaLink="false"></guid>
+		  <media:content url="http://184.106.129.173/newtfc/20100628-magkaribal5_sol-360.flv"></media:content>
+		  <enclosure url="http://184.106.129.173/newtfc/20100628-magkaribal5_sol-360.flv" length="0" type="video/flv"></enclosure>
+		  <itunes:duration>0</itunes:duration>
+		  <media:thumbnail url="http://184.106.129.173/test/images/magkaribal5.png"></media:thumbnail>
+		</item>
+
+		<item>
+		  <title>Noah</title>
+		  <link>http://184.106.129.173/newtfc/20100712-noah4_sol-360.flv</link>
+		  <description>Episode 4</description>
+		  <pubDate>Fri, 27 Aug 2010 07:00:00 -0000</pubDate>
+		  <comments></comments>
+		  <guid isPermaLink="false"></guid>
+		  <media:content url="http://184.106.129.173/newtfc/20100712-noah4_sol-360.flv"></media:content>
+		  <enclosure url="http://184.106.129.173/newtfc/20100712-noah4_sol-360.flv" length="0" type="video/flv"></enclosure>
+		  <itunes:duration>0</itunes:duration>
+		  <media:thumbnail url="http://184.106.129.173/test/images/noah4.png"></media:thumbnail>
+		</item>
+
+		<item>
+		  <title>Alynna</title>
+		  <link>http://184.106.129.173/newtfc/20100920-alyna2_sol-360.flv</link>
+		  <description>Episode 2</description>
+		  <pubDate>Fri, 27 Aug 2010 07:00:00 -0000</pubDate>
+		  <comments></comments>
+		  <guid isPermaLink="false"></guid>
+		  <media:content url="http://184.106.129.173/newtfc/20100920-alyna2_sol-360.flv"></media:content>
+		  <enclosure url="http://184.106.129.173/newtfc/20100920-alyna2_sol-360.flv" length="0" type="video/flv"></enclosure>
+		  <itunes:duration>0</itunes:duration>
+		  <media:thumbnail url="http://184.106.129.173/test/images/alynna2.png"></media:thumbnail>
+		</item>
+
+		<item>
+		  <title>Alynna</title>
+		  <link>http://184.106.129.173/newtfc/20100920-alyna3_sol-360.flv</link>
+		  <description>Episode 3</description>
+		  <pubDate>Fri, 27 Aug 2010 07:00:00 -0000</pubDate>
+		  <comments></comments>
+		  <guid isPermaLink="false"></guid>
+		  <media:content url="http://184.106.129.173/newtfc/20100920-alyna3_sol-360.flv"></media:content>
+		  <enclosure url="http://184.106.129.173/newtfc/20100920-alyna3_sol-360.flv" length="0" type="video/flv"></enclosure>
+		  <itunes:duration>0</itunes:duration>
+		  <media:thumbnail url="http://184.106.129.173/test/images/alynna3.png"></media:thumbnail>
+		</item>
+
+		<item>
+		  <title>Alynna</title>
+		  <link>http://184.106.129.173/newtfc/20100920-alyna4_sol-360.flv</link>
+		  <description>Episode 4</description>
+		  <pubDate>Fri, 27 Aug 2010 07:00:00 -0000</pubDate>
+		  <comments></comments>
+		  <guid isPermaLink="false"></guid>
+		  <media:content url="http://184.106.129.173/newtfc/20100920-alyna4_sol-360.flv"></media:content>
+		  <enclosure url="http://184.106.129.173/newtfc/20100920-alyna4_sol-360.flv" length="0" type="video/flv"></enclosure>
+		  <itunes:duration>0</itunes:duration>
+		  <media:thumbnail url="http://184.106.129.173/test/images/alynna4.png"></media:thumbnail>
+		</item>
+
+		<item>
+		  <title>Juanita Banana</title>
+		  <link>http://184.106.129.173/newtfc/20101025-jbanana4_sol-360.flv</link>
+		  <description>Episode 4</description>
+		  <pubDate>Fri, 27 Aug 2010 07:00:00 -0000</pubDate>
+		  <comments></comments>
+		  <guid isPermaLink="false"></guid>
+		  <media:content url="http://184.106.129.173/newtfc/20101025-jbanana4_sol-360.flv"></media:content>
+		  <enclosure url="http://184.106.129.173/newtfc/20101025-jbanana4_sol-360.flv" length="0" type="video/flv"></enclosure>
+		  <itunes:duration>0</itunes:duration>
+		  <media:thumbnail url="http://184.106.129.173/test/images/juanitabanana4.png"></media:thumbnail>
+		</item>
+
+		<item>
+		  <title>Mara Clara</title>
+		  <link>http://184.106.129.173/newtfc/20101025-maraclara3_sol-360.flv</link>
+		  <description>Episode 3</description>
+		  <pubDate>Fri, 27 Aug 2010 07:00:00 -0000</pubDate>
+		  <comments></comments>
+		  <guid isPermaLink="false"></guid>
+		  <media:content url="http://184.106.129.173/20101025-maraclara3_sol-360.flv"></media:content>
+		  <enclosure url="http://184.106.129.173/newtfc/20101025-maraclara3_sol-360.flv" length="0" type="video/flv"></enclosure>
+		  <itunes:duration>0</itunes:duration>
+		  <media:thumbnail url="http://184.106.129.173/test/images/maraclara3.png"></media:thumbnail>
+		</item>
+	</channel>
+</rss>

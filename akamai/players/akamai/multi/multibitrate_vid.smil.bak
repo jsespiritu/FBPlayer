@@ -1,0 +1,12 @@
+<smil>
+  <head>
+    <meta base="rtmp://cp107969.edgefcs.net/ondemand" />
+  </head>
+  <body>
+    <switch>
+      <video src="rtmp://cp107969.edgefcs.net/ondemand/20100927-tvpatrol01_sol-240" system-bitrate="408000"/>
+      <video src="rtmp://cp107969.edgefcs.net/ondemand/20100927-tvpatrol01_sol-360" system-bitrate="608000"/>
+      <video src="rtmp://cp107969.edgefcs.net/ondemand/20100927-tvpatrol01_sol-480" system-bitrate="908000"/>
+    </switch>
+  </body>
+</smil>

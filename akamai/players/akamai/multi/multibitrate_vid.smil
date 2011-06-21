@@ -1,0 +1,15 @@
+<smil>
+  <head>
+    <meta base="http://c0006259.cdn2.cloudfiles.rackspacecloud.com" />
+  </head>
+  <body>
+    <switch>
+      <video src="http://c0006259.cdn2.cloudfiles.rackspacecloud.com/20101031-asap1_sol-240.flv" system-bitrate="408000"/>
+      <video src="http://c0006259.cdn2.cloudfiles.rackspacecloud.com/20101031-asap1_sol-360.flv" system-bitrate="608000"/>
+      <video src="http://c0006259.cdn2.cloudfiles.rackspacecloud.com/20101031-asap1_sol-480.flv" system-bitrate="908000"/>
+    </switch>
+  </body>
+</smil>
+
+
+

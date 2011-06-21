@@ -1,0 +1,39 @@
+Text for description in org.openvideoplayer.parsers:DfxpParser is not valid.
+org.xml.sax.SAXParseException: The element type "ul" must be terminated by the matching end-tag "</ul>".
+
+Text for description in com.akamai.rss:AkamaiBOSSParser is not valid.
+org.xml.sax.SAXParseException: The reference to entity "ltfallbackServerName" must end with the ';' delimiter.
+
+Text for description in org.openvideoplayer.plugins:OvpPlayerEvent/NETSTREAM_CREATED is not valid.
+org.xml.sax.SAXParseException: The element type "p" must be terminated by the matching end-tag "</p>".
+
+Text for description in org.openvideoplayer.plugins:OvpPlayerEvent/SWITCH_COMPLETE is not valid.
+org.xml.sax.SAXParseException: The element type "li" must be terminated by the matching end-tag "</li>".
+
+Text for description in org.openvideoplayer.events:OvpEvent/SWITCH_COMPLETE is not valid.
+org.xml.sax.SAXParseException: The element type "li" must be terminated by the matching end-tag "</li>".
+
+Text for param in org.openvideoplayer.utilities:HTTPBandwidthEstimate/start is not valid.
+org.xml.sax.SAXParseException: The element type "li" must be terminated by the matching end-tag "</li>".
+
+Text for description in com.akamai.net:AkamaiConnection/connect is not valid.
+org.xml.sax.SAXParseException: The element type "li" must be terminated by the matching end-tag "</li>".
+
+Text for description in com.akamai.net:AkamaiConnection/connectionAuth/get is not valid.
+org.xml.sax.SAXParseException: The entity name must immediately follow the '&' in the entity reference.
+
+Text for description in com.akamai.net:AkamaiNetStream/liveStreamAuthParams/get is not valid.
+org.xml.sax.SAXParseException: The entity name must immediately follow the '&' in the entity reference.
+
+Text for description in com.akamai.net:AkamaiDynamicNetStream/liveStreamAuthParams/get is not valid.
+org.xml.sax.SAXParseException: The entity name must immediately follow the '&' in the entity reference.
+
+Text for description in com.akamai.rss:AkamaiBOSSParser/connectAuthParams/get is not valid.
+org.xml.sax.SAXParseException: The reference to entity "aifp" must end with the ';' delimiter.
+
+Text for description in com.akamai.rss:AkamaiBOSSParser/playAuthParams/get is not valid.
+org.xml.sax.SAXParseException: The reference to entity "aifp" must end with the ';' delimiter.
+
+Text for description in org.openvideoplayer.net:OvpNetStream is not valid.
+org.xml.sax.SAXParseException: The element type "p" must be terminated by the matching end-tag "</p>".
+
