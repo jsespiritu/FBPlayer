@@ -568,22 +568,24 @@ package controller{
 		
 		private function onBuffer(event:HDEvent):void
 		{
-			//_nshd.bufferLength * 100 / _nshd.bufferTime;
-			//trace(" EVENT DATA ================== " + event.data);
-			//event.data ? trace("===== BUFFERING ====== ") : trace(" ============== hide buffering ================"); 
 			if(event.data)
 			{
 				pauseHandler(null);
-				trace("BUFFERING ========================================================================= >>>>>>>>> ");
+//				trace("BUFFERING ========================================================================= >>>>>>>>> ");
 				_model.isBuffering = true;
-				_model.playStart();
+				if(_model.playingState)
+				{
+					_model.playStart();
+				}
+				else
+				{
+					_model.pause();
+				}
 			}
 			else
 			{
-				//_needsRestart = true;
 				_view.showVideo();
 				_model.bufferFull();
-				//_nshd.resume();	
 			}
 		}
 

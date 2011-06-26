@@ -125,6 +125,7 @@ package model {
 		public var timeInterval:Number = 1;
 		public var directPlay:Boolean = false;
 		public var singleItemInXML:Boolean;
+		public var playingState:Boolean = true;
 		// -------- end --------------
 		
 		//Declare private constants
@@ -244,10 +245,10 @@ package model {
 		public const SCALE_MODE_NATIVE_OR_SMALLER:String = "SCALE_MODE_NATIVE_OR_SMALLER";
 		
 
-		public function Model(flashvars:Object):void {
-			init(flashvars);
+		public function Model(flashvars:Object, url:String = ""):void {
+			init(flashvars, url);
 		}
-		private function init(flashvars:Object):void {
+		private function init(flashvars:Object, url:String):void {
 			//flashvars.src="http://184.106.129.173/sg/ff/AB08252010240PS2DRff.f4v";
 			//flashvars.src="http://products.edgeboss.net/download/products/content/demo/video/oomt/big_buck_bunny_700k.flv";
 			//flashvars.src="http://mediapm.edgesuite.net/ovp/content/demo/smil/elephants_dream.smil";
@@ -261,6 +262,7 @@ package model {
 			//flashvars.src="http://tfctvhdflashsg-f.akamaihd.net/smil/snn1.smil";
 			//flashvars.src="http://mediapm.edgesuite.net/edgeflash/public/debug/assets/smil/elephants2-sub-clips.smil";
 			//flashvars.src="http://localhost/videos/content/20100920-alyna4_sol-240.flv";
+			flashvars.src = url;
 			flashvars.mode = "overlay";
 			flashvars.isPlayable = "1";
 			flashvars.isLogin = "1";

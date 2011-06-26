@@ -35,7 +35,6 @@ package {
 	import flash.net.URLRequest;
 	import flash.ui.*;
 	import flash.utils.Timer;
-//	import flash.external.ExternalInterface;
 	import flash.system.Capabilities;
 	import flash.net.navigateToURL;
 	import flash.media.Video;
@@ -57,8 +56,6 @@ package {
 	import advertising.AdManager;
 	import ui.PopUp;
 	import org.openvideoplayer.rss.*;
-	// use for calling javascript function
-	import flash.external.ExternalInterface;
 	import flash.text.*;
 	import ui.BuyButton;
 	
@@ -182,14 +179,17 @@ package {
 		private var _videoView:VideoView;
 		private var _video:Video;
 		private var _shareEmbed:ShareEmbedView;
+
 		// added by jerwin s. espiritu
 		private var _pixelView:PixelView;
 		private var _groupList:GroupListView;
-		//public var _playlisXML:String
 		private var _playlistHorizontal:PlaylistHorizontalView;
 		private var _popUpView:PopUpView;
 		private var _captionView:CaptionView;
+		private var _apiResponse:String;
 		// -------------- end
+		
+		
 		private var _debugPanel:DebugPanelView;
 		private var _errorDisplay:ErrorDisplayView;
 		private var _adMC:MovieClip;
@@ -214,7 +214,6 @@ package {
 		private var _state:String;
 		private var _videoHolder:UIComponent;
 		
-		private var _javascriptCall:ExternalInterface;
 		
 		/**
 		 * Constructor
@@ -222,11 +221,11 @@ package {
 		 * @paramstarting height of the player
 		 * @paramflashvars - the loaderInfo.parameters object passed in from the HTML wrapper
 		 */
-		public function AkamaiMultiPlayer( width : Number = 774 , height : Number = 473 , flashvars : Object = null ):void 
+		public function AkamaiMultiPlayer( width : Number = 774 , height : Number = 473 , flashvars : Object = null , link:String = "" ):void 
 		{			
-			
 			_flashvars = flashvars;
-			init( _flashvars == null ? new Object() : _flashvars , width , height );
+									
+			init( _flashvars == null ? new Object() : _flashvars , width , height , link);
 			createChildren();
 			resize( null );
 
@@ -239,7 +238,7 @@ package {
 			}
 			this.addEventListener(Event.ADDED_TO_STAGE, activate);
 		}
-
+		
 		private function activate(event:Event):void
 		{
 			this.removeEventListener(Event.ADDED_TO_STAGE, activate);
@@ -318,8 +317,8 @@ package {
 			_model.debug( msg );
 		}
 
-		private function init( flashvars : Object , width : Number , height : Number ):void {
-			_model = new Model(flashvars);
+		private function init( flashvars : Object , width : Number , height : Number, link:String):void {						
+			_model = new Model(flashvars, link);
 			_model.addEventListener( _model.EVENT_LOAD_UI , loadUIhandler );
 			_model.addEventListener( _model.EVENT_TOGGLE_FULLSCREEN , toggleFullscreenHandler );
 			_model.addEventListener( _model.EVENT_RESIZE , resizeHandler );
@@ -338,9 +337,7 @@ package {
 			_model.addEventListener( OvpEvent.SWITCH_COMPLETE , switchCompleteHandler );
 
 			this.addEventListener( MouseEvent.MOUSE_MOVE , mouseMoveHandler );
-			this.addEventListener( MouseEvent.ROLL_OUT , leaveStageHandler );
-
-			
+			this.addEventListener( MouseEvent.ROLL_OUT , leaveStageHandler );			
 			
 			_lastWidth = width;
 			_lastHeight = height;
@@ -354,31 +351,11 @@ package {
 			_plugins = new Array();
 			_state = "";
 
-/*			if (ExternalInterface.available) {
-				try {
-					ExternalInterface.addCallback( "setNewSource" , setNewSource );
-					ExternalInterface.addCallback("methodName", methodName);					
-					_model.debug("CALL realMethod =============================================== >>>> ");
-				} catch (e:Error) {
-					// don't notify the user since ExternalInterface is not necessary for standard operation;
-				}
-			}
-*/		}
-
-		private function methodName(str:String):void {
-    	//do something
-			_model.debug("RESPONCE OF realMethod <<<<< =============================================== " + str);
-			_model.pause();
 		}
 		
 		private function createChildren():void {
 			_errorDisplay = new ErrorDisplayView(_model);
 			addChild( _errorDisplay );
-
-/*			if (ExternalInterface.available) {
-				_model.debug( "External Interface available = " + ExternalInterface.available );								
-				flash.external.ExternalInterface.call( "isReady" );
-			}*/
 		}
 
 
@@ -866,14 +843,6 @@ package {
             _model.play();
         }		
 		
-		// trigger javascript changeData function
-		private function changeData(id:String):void{
-			if(ExternalInterface.available)
-			{
-				ExternalInterface.call("changeData(" + id + ")");
-			}
-		}
-		
 		// --- end here
 		
 		
@@ -896,9 +865,6 @@ package {
 				{
 					for(var j:uint = 0; j < _model.playlistItems.length; j++){
 						if(ItemTO(_model.playlistItems[j]).media.getContentAt(0).url == _model.src){
-							// trigger changeData javascript function
-							//trace(ItemTO(_model.playlistItems[j+1]).author);
-							 changeData(ItemTO(_model.playlistItems[j+1]).author); // ====================================================
 						}
 					}
 				}

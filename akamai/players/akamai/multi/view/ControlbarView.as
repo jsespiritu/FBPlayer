@@ -510,11 +510,13 @@ package view{
 			e.currentTarget.icon.transform.colorTransform = _b6b6b6Transform;
 		}
 		private function doPlay(e:MouseEvent):void {
+			_model.playingState = true;
 			_playButton.visible = false;
 			_pauseButton.visible = true;
-			_controller.play();
+			_controller.play();			
 		}
 		private function doPause(e:MouseEvent):void {
+			_model.playingState = false;			
 			_playButton.visible = true;
 			_pauseButton.visible = false;
 			_controller.pause();
