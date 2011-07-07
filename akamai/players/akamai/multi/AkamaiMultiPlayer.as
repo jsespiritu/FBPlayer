@@ -626,7 +626,7 @@ package {
 			contextMenu.hideBuiltInItems();
 
 			//var idItem:ContextMenuItem=new ContextMenuItem("Built on OpenVideoPlayer v"+OvpVersion.version,true);
-			var playerVersion:ContextMenuItem=new ContextMenuItem("ABS-CBN Global Player Ver. 0.9.06072011",true);
+			var playerVersion:ContextMenuItem=new ContextMenuItem("ABS-CBN Global Player Ver. 0.9.07072011",true);
 			//idItem.addEventListener( ContextMenuEvent.MENU_ITEM_SELECT , idItemSelectHandler );
 			contextMenu.customItems.push( playerVersion );
 			
@@ -658,13 +658,13 @@ package {
 			nativeOrSmallerItem.addEventListener( ContextMenuEvent.MENU_ITEM_SELECT , nativeOrSmallerItemSelectHandler );
 
 			contextMenu.customItems.push( nativeOrSmallerItem );
-*/
+
 			var debugItem:ContextMenuItem=new ContextMenuItem("Toggle Statistics Panel",true,true);
 			debugItem.addEventListener( ContextMenuEvent.MENU_ITEM_SELECT , debugItemSelectHandler );
 
 			contextMenu.customItems.push( debugItem );
 
-/*			var autoItem:ContextMenuItem=new ContextMenuItem("Enable Auto Bitrate Switching",true,_model.isMultiBitrate&&! _model.useAutoDynamicSwitching);
+			var autoItem:ContextMenuItem=new ContextMenuItem("Enable Auto Bitrate Switching",true,_model.isMultiBitrate&&! _model.useAutoDynamicSwitching);
 			autoItem.addEventListener( ContextMenuEvent.MENU_ITEM_SELECT , autoSwitchHandler );
 
 			contextMenu.customItems.push( autoItem );
@@ -700,10 +700,10 @@ package {
 //					contextMenu.customItems[10].enabled=false;
 //				}
 //			}
-			if (contextMenu is ContextMenu)
-			{
-				contextMenu.customItems[2].enabled=true;
-			}
+//			if (contextMenu is ContextMenu)
+//			{
+//				contextMenu.customItems[2].enabled=true;
+//			}
 			
 			dispatchEvent( new Event( "resize" ));
 		}
@@ -848,8 +848,11 @@ package {
 		
 		private function endOfItemHandler( e : Event ):void {
 			dispatchEvent( new Event( "endOfItem" ));
-			_model.overrideAutoStart = _model.overrideAutoStart == 2 || _model.overrideAutoStart == 1?1:0;			
-			trace("OVERRIDE ------------------------------------------------- " + _model.overrideAutoStart);
+			if(_model.playCount>1)
+			{
+			}
+			
+			_model.overrideAutoStart = _model.overrideAutoStart == 2 || _model.overrideAutoStart == 1?1:0;						
 			if(!_model.overrideAutoStart)
 			{
 				pausePlayer();
@@ -861,13 +864,13 @@ package {
 				minuteTimer.addEventListener(TimerEvent.TIMER, onTick);
 				minuteTimer.addEventListener(TimerEvent.TIMER_COMPLETE, onTimerComplete);
 				minuteTimer.start();
-				if(_model.playlistItems)
-				{
-					for(var j:uint = 0; j < _model.playlistItems.length; j++){
-						if(ItemTO(_model.playlistItems[j]).media.getContentAt(0).url == _model.src){
-						}
-					}
-				}
+				//if(_model.playlistItems)
+				//{
+					//for(var j:uint = 0; j < _model.playlistItems.length; j++){
+						//_model.playCount = _model.playCount + 1;
+						//if(ItemTO(_model.playlistItems[j]).media.getContentAt(0).url == _model.src){}
+					//}
+				//}
 			}
 		}
 

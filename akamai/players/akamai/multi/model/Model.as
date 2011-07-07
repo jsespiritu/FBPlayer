@@ -126,6 +126,10 @@ package model {
 		public var directPlay:Boolean = false;
 		public var singleItemInXML:Boolean;
 		public var playingState:Boolean = true;
+		public var maxPlayingTime:Number = 60;
+		public var playCount:Number = 0;
+		public var isAdContent:Boolean = false;
+		public var endOfShow:Boolean = false;
 		// -------- end --------------
 		
 		//Declare private constants
@@ -266,6 +270,7 @@ package model {
 			flashvars.mode = "overlay";
 			flashvars.isPlayable = "1";
 			flashvars.isLogin = "1";
+			//flashvars.maxPlayingTime = "0";
 			//flashvars.trackNo = "8";
 			//flashvars.timeInterval = "10";
 //			flashvars.refer = "/video/postback/path";
@@ -308,12 +313,14 @@ package model {
 			_forcePlayIndex = flashvars.trackNo == undefined ? "":flashvars.trackNo;
 			isPlayable = flashvars.isPlayable == undefined || flashvars.isPlayable == "1"? true:false;
 			isLogin = flashvars.isLogin == undefined || flashvars.isLogin == "0" ? false:true;
+			isAdContent = flashvars.isAdContent == undefined || flashvars.isAdContent == "0" ? false:true;
 			refer = flashvars.refer == undefined ? "":flashvars.refer.toString();
 			commentFontSize = flashvars.commentFontSize == undefined? 15 : int(flashvars.commentFontSize.toString());
 			commentX= flashvars.commentX == undefined? 440 : int(flashvars.commentX.toString());
 			commentY= flashvars.commentY == undefined? 1 : int(flashvars.commentY.toString());
 			commentWidth= flashvars.commentWidth == undefined? 600 : int(flashvars.commentWidth.toString());
 			timeInterval = flashvars.timeInterval == undefined ? timeInterval:flashvars.timeInterval;
+			maxPlayingTime = flashvars.allowPlayingTime == undefined ? maxPlayingTime : Number(flashvars.maxPlayingTime.toString());
 			// ---- end
 			//
 			// call login modal
@@ -930,19 +937,53 @@ package model {
 			var error:String = "";
 			
 			/*  Added By Jerwin Espiritu */
-			/* forcePlayIndex */
+
 			_items = playlistItems;
+			
+			/* if forcePlayIndex have a value it will override the source URL */
 			if(_forcePlayIndex != "" && _items != null){
 				for(var x:uint=0; x < _items.length; x++){
 					if(ItemTO(_items[x]).author == _forcePlayIndex)
 					{
 						_src = ItemTO(_items[x]).media.getContentAt(0).url;
+						if(ItemTO(_items[x]).description.toString().toLocaleLowerCase() == "adcontent")
+						{
+							isAdContent = true;
+						}
+						else
+						{
+							isAdContent = false;
+						}
 					}
 				}
 				_forcePlayIndex = "";
 			}
 			/* forcePlayIndex */
-			
+			else
+			{
+				/*
+					if the value of description in xml is equal to adcontent it will hide the controlbar
+				*/
+				if(_items != null)
+				{
+					for(var j:uint=0; j < _items.length; j++){
+						
+						if(ItemTO(_items[j]).media.getContentAt(0).url == _src)
+						{
+							if(ItemTO(_items[j]).description == "adcontent")
+							{
+								isAdContent = true;
+								//showControlBar(false);
+							}
+							else
+							{
+								isAdContent = false;
+								//showControlBar(true);
+							}
+						}
+					}
+				}				
+			}
 			if (_src == "") {
 				// Wait for the player to call setNewSource(src:String)
 			} else {
@@ -956,6 +997,9 @@ package model {
 					extension = _src.slice(_src.lastIndexOf(".")+1);
 				}
 				extension = extension.toLowerCase();
+				
+				var splitExtension:String = extension.split("/")[0];
+				
 				if ((protocol != "") && (protocol != "rtmp") && (protocol != "rtmpt") && (protocol != "rtmpte") && (protocol != "rtmpe") && (protocol != "http")) {
 					error = ERROR_INVALID_PROTOCOL;
 				} else if (protocol.indexOf("rtm") != -1 && appName != "live") {
@@ -966,7 +1010,7 @@ package model {
 					_srcType = TYPE_BOSS_STREAM;
 				} else if (protocol == "http" && (_src.toLowerCase().indexOf("streamos.com/download") != -1 || _src.toLowerCase().indexOf("edgeboss.net/download") != -1) && appName.toLowerCase() == "download") {
 					_srcType = TYPE_BOSS_PROGRESSIVE;
-				} else if (protocol == "http" && (_src.toLowerCase().indexOf("genfeed.php") != -1 || extension == "" || extension == "xml" || extension == "rss")) {
+				} else if (protocol == "http" && (_src.toLowerCase().indexOf("genfeed.php") != -1 || extension == "" || extension == "xml" || extension == "rss" || splitExtension == "com")) {
 					_srcType = TYPE_MEDIA_RSS;
 				} else if (extension == "smil" || (_src.toLowerCase().indexOf("theplatform") != -1  && _src.toLowerCase().indexOf("smil") != -1 )) {
 					_srcType = TYPE_MBR_SMIL;
@@ -974,7 +1018,7 @@ package model {
 					isDynamic = true;
 				} else if (protocol == "http") {
 					_srcType = TYPE_AMD_PROGRESSIVE;
-				} else if (protocol == "" && (extension == "rss" || extension == "xml")) {
+				} else if (protocol == "" && (extension == "rss" || extension == "xml" || splitExtension == "com" )) {
 					_srcType = TYPE_MEDIA_RSS;
 				} else if (protocol == "" && (extension == "flv" || extension == "mp4" || extension == "mov" || extension == "fv4" || extension == "f4v" || extension == "3gp")) {
 					_srcType = TYPE_AMD_PROGRESSIVE;

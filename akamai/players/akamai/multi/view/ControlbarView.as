@@ -60,45 +60,28 @@ package view{
 		private var _pauseButton:PauseButton;
 		private var _fullscreenButton:FullscreenButton;
 		private var _shareButton:ShareButton;
-		private var _playlistButton:PlaylistHorizontalButton;
 		private var _volumeControl:VolumeControlView;
-		private var _HDmeter:HDMeter2View;
+//		private var _playlistButton:PlaylistHorizontalButton;
+//		private var _HDmeter:HDMeter2View;
 		private var _scrubBar:ScrubBarView;
 		private var _toolTip:ToolTipView;
 		private var _themeTransform:ColorTransform;
 		private var _b6b6b6Transform:ColorTransform;
 		
 		// added by jerwin s. espiritu
-		private var _pixelButton:SettingsButton;
-		private var _genericPixelButton:GenericPixelButton;
-		private var _currentField:TextField;
-		private var _groupListButton:GroupListButton;
 		private var _videoModeButton:VideoModeButton;
-		//private var _captionButton:CaptionButton;
+/*		
+		private var _captionButton:CaptionButton;
 		private var _cinemaModeButton:CinemaModeButton;
 		private var _subtitleButton:SubtitleButton;
 		private var _popOutButton:PopUp;
-		private var _continousPlayButton:ContinousPlayButton;
-		
-		private var _pixelView:PixelView;
 		private var _popUpView:PopUpView;
-		private var _volumeSlider:VolumeSliderView;
-		
-		private var _backwardButton:BackwardButton;
-		private var _forwardButton:ForwardButton;
-		private var _currentIndex:uint = 0;
-		private var _items:Array;
-		private var _movieId:String;
-		//private var _captionOnOff:Boolean = false;
+		private var _captionOnOff:Boolean = false;
 		private var _cinemaOnOff:Boolean = false;
 		private var _subtitleOnOff:Boolean = false;
-		private var _continousPlayOnOff:Boolean = true;
-		private var _setPixelSetting:String = "360p";
-		private var _previousPixelSetting:String;
-		
-		private var pixelButtonName:TextField = new TextField();
-		private	var pixelTextFormat:TextFormat = new TextFormat();
-		
+*/		
+		private var _replayButton:ReplayButton;		
+		private var _volumeSlider:VolumeSliderView;		
 		
 		// ----------------------- end 
 
@@ -116,35 +99,61 @@ package view{
 			_controller = new ControlbarController(_model,this);
 			createChildren();
 			this.visible = !_model.isOverlay;
-			// Add pixel button
-			_pixelButton = new SettingsButton();			
-			_pixelButton.addEventListener(MouseEvent.MOUSE_DOWN,pixelMouseDown);
-			_pixelButton.addEventListener(MouseEvent.MOUSE_UP, pixelMouseUp);			
-			_pixelButton.addEventListener(MouseEvent.CLICK, togglePixel);
-			_pixelButton.y =6;
-			_container.addChild(_pixelButton);				
 			
+			_replayButton = new ReplayButton();
+			var replayTextField:TextField = new TextField();
+			replayTextField.embedFonts = true;
+			
+			var replayTextFormat:TextFormat = new TextFormat();
+			replayTextFormat.font = new AkamaiArialBold().fontName;
+			replayTextFormat.bold = 1;
+			replayTextFormat.size = 6;
+			replayTextFormat.color = "0XFFFFFF";
+			replayTextField.defaultTextFormat = replayTextFormat;
+			replayTextField.text = "EPLAY";
+			replayTextField.width = 50;
+			replayTextField.height = 20;
+			replayTextField.x = 23;
+			replayTextField.y = 5;
+			
+			_replayButton.addChild(replayTextField);
+			_replayButton.highlight.alpha = 0;
+			_replayButton.addEventListener(MouseEvent.MOUSE_DOWN,buttonMouseOver);
+			_replayButton.addEventListener(MouseEvent.MOUSE_UP,buttonMouseOut);
+			_replayButton.addEventListener(MouseEvent.CLICK,replay);
+			_replayButton.scaleX = 3;
+			_replayButton.scaleY = 3;
+			
+			addChild(_replayButton);						
+			
+			_replayButton.visible = false;
 		}
 		
 		private function progressiveUpdate(e:Event){
-			_setPixelSetting = _model.currentPixelSetting;
-			if(_setPixelSetting != _previousPixelSetting)
+			if(_model.endOfShow)
 			{
-				_previousPixelSetting = _model.currentPixelSetting;
-				
-				/*  progressive update for pixel setting label */
-				pixelButtonName.embedFonts = true;
-				pixelTextFormat.font = new AkamaiArialBold().fontName;
-				pixelTextFormat.size = 11;
-				pixelTextFormat.bold = 1;
-				pixelTextFormat.color = _model.fontColor
-				pixelButtonName.defaultTextFormat = pixelTextFormat;
-				pixelButtonName.text = _previousPixelSetting;
-				pixelButtonName.width = 50;
-				pixelButtonName.height = 20;
-				pixelButtonName.x = 10;
-				pixelButtonName.y = 10;
-				_pixelButton.addChild(pixelButtonName);	
+				_replayButton.visible = true;
+				_replayButton.x = ((_model.width - _replayButton.width )/2);
+				_replayButton.y = ((_model.width - _replayButton.height )/4);
+				_playButton.visible = true;
+				_pauseButton.visible = false;
+				_pauseButton.mouseEnabled = false;
+				_playButton.mouseEnabled = false;								
+			}
+			else
+			{
+				_replayButton.visible = false;
+
+				if(_model.isAdContent)
+				{
+					_pauseButton.mouseEnabled = false;
+					_playButton.mouseEnabled = false;
+				}
+				else
+				{
+					_pauseButton.mouseEnabled = true;
+					_playButton.mouseEnabled = true;				
+				}				
 			}
 		}
 		
@@ -161,10 +170,6 @@ package view{
 			_b6b6b6Transform.color = 0xB6B6B6;
 			// Add playbutton
 			_playButton = new PlayButton();
-			//_playButton.highlight.transform.colorTransform = _themeTransform;
-			//_playButton.highlight.alpha = 0;
-			//_playButton.addEventListener(MouseEvent.MOUSE_OVER,buttonMouseOver);
-			//_playButton.addEventListener(MouseEvent.MOUSE_OUT,buttonMouseOut);
 			_playButton.addEventListener(MouseEvent.MOUSE_DOWN,genericMouseDown);
 			_playButton.addEventListener(MouseEvent.MOUSE_UP,genericMouseUp);
 			_playButton.addEventListener(MouseEvent.CLICK,doPlay);
@@ -174,10 +179,6 @@ package view{
 			_container.addChild(_playButton);
 			// Add pausebutton
 			_pauseButton = new PauseButton();
-//			_pauseButton.highlight.transform.colorTransform = _themeTransform;
-//			_pauseButton.highlight.alpha = 0;
-//			_pauseButton.addEventListener(MouseEvent.MOUSE_OVER,buttonMouseOver);
-//			_pauseButton.addEventListener(MouseEvent.MOUSE_OUT,buttonMouseOut);
 			_pauseButton.addEventListener(MouseEvent.MOUSE_DOWN,genericMouseDown);
 			_pauseButton.addEventListener(MouseEvent.MOUSE_UP,genericMouseUp);
 			_pauseButton.addEventListener(MouseEvent.CLICK,doPause);
@@ -187,8 +188,6 @@ package view{
 			_container.addChild(_pauseButton);
 			//Add fullscreen button
 			_fullscreenButton = new FullscreenButton();
-//			_fullscreenButton.addEventListener(MouseEvent.MOUSE_OVER,genericMouseOver);
-//			_fullscreenButton.addEventListener(MouseEvent.MOUSE_OUT, genericMouseOut);
 			_fullscreenButton.addEventListener(MouseEvent.MOUSE_DOWN,genericMouseDown);
 			_fullscreenButton.addEventListener(MouseEvent.MOUSE_UP, genericMouseUp);
 			_fullscreenButton.addEventListener(MouseEvent.CLICK,toggleFullscreen);
@@ -205,6 +204,19 @@ package view{
 			_shareButton.x = 250;
 			_shareButton.y = 6;
 			_container.addChild(_shareButton);
+			
+			// Add scrub bar
+			_scrubBar = new ScrubBarView(_model);
+			_scrubBar.x = 0;
+			_scrubBar.y = 40;
+			_container.addChild(_scrubBar);
+			// added by jerwin s. espiritu
+			
+			_volumeSlider = new VolumeSliderView(_model);
+			_volumeSlider.y = 10;
+			_container.addChild(_volumeSlider);
+		
+/*
 			//Add playlist button
 			_playlistButton = new PlaylistHorizontalButton();
 			_playlistButton.addEventListener(MouseEvent.MOUSE_OVER,genericMouseOver);
@@ -219,33 +231,8 @@ package view{
 			_HDmeter = new HDMeter2View(_model);
 			_HDmeter.y = 6;
 			_container.addChild(_HDmeter);
-			// Add volume control
-/*			_volumeControl = new VolumeControlView(_model);
-			_volumeControl.y = 12;
-			_container.addChild(_volumeControl);
-*/			// Add scrub bar
-			_scrubBar = new ScrubBarView(_model);
-//			_scrubBar.x = 70;
-//			_scrubBar.y = 9;
-			_scrubBar.x = 0;
-			_scrubBar.y = 40;
-			_container.addChild(_scrubBar);
-			// added by jerwin s. espiritu
-			
-			_volumeSlider = new VolumeSliderView(_model);
-			_volumeSlider.y = 10;
-			_container.addChild(_volumeSlider);
-		
-			_groupListButton = new GroupListButton();
-			_groupListButton.y = 6;
-			_groupListButton.addEventListener(MouseEvent.MOUSE_OVER,genericMouseOver);
-			_groupListButton.addEventListener(MouseEvent.MOUSE_OUT, genericMouseOut);			
-			_groupListButton.addEventListener(MouseEvent.MOUSE_DOWN,genericMouseDown);
-			_groupListButton.addEventListener(MouseEvent.MOUSE_UP, genericMouseUp);			
-			_groupListButton.addEventListener(MouseEvent.CLICK, toggleGroupList);
-			_container.addChild(_groupListButton);
 
-/*			_captionButton = new CaptionButton();
+			_captionButton = new CaptionButton();
 			_captionButton.highlight.transform.colorTransform = _themeTransform;
 			_captionButton.highlight.alpha = 0;
 			_captionButton.addEventListener(MouseEvent.MOUSE_DOWN,genericMouseDown);
@@ -253,59 +240,24 @@ package view{
 			_captionButton.addEventListener(MouseEvent.CLICK,toggleCaption);
 			_captionButton.y = 6;
 			_container.addChild(_captionButton);
-*/			
-			_backwardButton = new BackwardButton();
-//			_backwardButton.highlight.transform.colorTransform = _themeTransform;
-//			_backwardButton.highlight.alpha = 0;
-//			_backwardButton.addEventListener(MouseEvent.MOUSE_OVER,buttonMouseOver);
-//			_backwardButton.addEventListener(MouseEvent.MOUSE_OUT,buttonMouseOut);
-			_backwardButton.addEventListener(MouseEvent.MOUSE_DOWN,genericMouseDown);
-			_backwardButton.addEventListener(MouseEvent.MOUSE_UP,genericMouseUp);
-			_backwardButton.addEventListener(MouseEvent.CLICK,doBackHandler);
-			_backwardButton.y = 6;
-			_container.addChild(_backwardButton);
-
-			_forwardButton = new ForwardButton();
-//			_forwardButton.highlight.transform.colorTransform = _themeTransform;
-//			_forwardButton.highlight.alpha = 0;
-//			_forwardButton.addEventListener(MouseEvent.MOUSE_OVER,buttonMouseOver);
-//			_forwardButton.addEventListener(MouseEvent.MOUSE_OUT,buttonMouseOut);
-			_forwardButton.addEventListener(MouseEvent.MOUSE_DOWN,genericMouseDown);
-			_forwardButton.addEventListener(MouseEvent.MOUSE_UP,genericMouseUp);
-			_forwardButton.addEventListener(MouseEvent.CLICK,doForward);
-			_forwardButton.y = 6;
-			_container.addChild(_forwardButton);
-			
-			_continousPlayButton = new ContinousPlayButton();
-//			_continousPlayButton.addEventListener(MouseEvent.MOUSE_OVER,genericMouseOver);
-//			_continousPlayButton.addEventListener(MouseEvent.MOUSE_OUT, genericMouseOut);			
-			_continousPlayButton.addEventListener(MouseEvent.MOUSE_DOWN,genericMouseDown);
-			_continousPlayButton.addEventListener(MouseEvent.MOUSE_UP, genericMouseUp);			
-			_continousPlayButton.addEventListener(MouseEvent.CLICK, toggleContinousPlay);
-			_continousPlayButton.y =6;
-			_container.addChild(_continousPlayButton);
-			
+						
 			_cinemaModeButton = new CinemaModeButton();
 			var cinemaModeButtonName:TextField = new TextField();
-//			_cinemaModeButton.highlight.transform.colorTransform = _themeTransform;
-//			_cinemaModeButton.highlight.alpha = 0;
 			_cinemaModeButton.addEventListener(MouseEvent.MOUSE_DOWN,genericMouseDown);
 			_cinemaModeButton.addEventListener(MouseEvent.MOUSE_UP,genericMouseUp);
-			_cinemaModeButton.addEventListener(MouseEvent.CLICK,toggleCinemaMode);
-			
+			_cinemaModeButton.addEventListener(MouseEvent.CLICK,toggleCinemaMode);			
 			_container.addChild(_cinemaModeButton);
 						
-			_subtitleButton = new SubtitleButton();
-			
-//			_subtitleButton.highlight.transform.colorTransform = _themeTransform;
-//			_subtitleButton.highlight.alpha = 0;
-//			_subtitleButton.addEventListener(MouseEvent.MOUSE_DOWN,genericMouseDown);
-//			_subtitleButton.addEventListener(MouseEvent.MOUSE_UP,genericMouseUp);
+			_subtitleButton = new SubtitleButton();			
+			_subtitleButton.highlight.transform.colorTransform = _themeTransform;
+			_subtitleButton.highlight.alpha = 0;
+			_subtitleButton.addEventListener(MouseEvent.MOUSE_DOWN,genericMouseDown);
+			_subtitleButton.addEventListener(MouseEvent.MOUSE_UP,genericMouseUp);
 			_subtitleButton.addEventListener(MouseEvent.CLICK,toggleSubtitle);
 			_container.addChild(_subtitleButton);
 			
 			_popOutButton = new PopUp();
-/*			var popOutButtonName:TextField = new TextField();
+			var popOutButtonName:TextField = new TextField();
 			popOutButtonName.embedFonts = true;
 			var popOutTextFormat:TextFormat = new TextFormat();
 			popOutTextFormat.font = new AkamaiArialBold().fontName;
@@ -324,162 +276,62 @@ package view{
 			_popOutButton.highlight.alpha = 0;
 			_popOutButton.addEventListener(MouseEvent.MOUSE_DOWN,genericMouseDown);
 			_popOutButton.addEventListener(MouseEvent.MOUSE_UP,genericMouseUp);
-*/			_popOutButton.addEventListener(MouseEvent.CLICK,togglePopUp);
+			_popOutButton.addEventListener(MouseEvent.CLICK,togglePopUp);
 			_container.addChild(_popOutButton);
-			
-			if(!_model.hasPlaylist){
-				_forwardButton.visible = false;
-				_backwardButton.visible = false;
-			}
+*/						
 			if(!_model.isPlayable){
 				_playButton.width = 0;
 				_playButton.visible = false;
 				_pauseButton.visible = false;
 				_pauseButton.width = 0;
-				_forwardButton.visible = false;
-				_forwardButton.width = 0;
-				_backwardButton.visible = false;
-				_backwardButton.width = 0;
 			}
 			// -------------- end
 			// Add tooltip
 			_toolTip = new ToolTipView(_model);
+			_toolTip.register(_fullscreenButton, "Full Screen");
+/*			
 			_toolTip.register(_cinemaModeButton, "Cinema Mode");
-			_toolTip.register(_continousPlayButton, "Continous Play");
-//			_toolTip.register(_captionButton, "Caption");
-			_toolTip.register(_groupListButton, "Playlist");
 			_toolTip.register(_subtitleButton, "Subtitle");
 			_toolTip.register(_popOutButton, "Pop out");
-			//_toolTip.register(_pixelButton, "Video Settings");
-			_toolTip.register(_fullscreenButton, "Full Screen");
 			_toolTip.register(_playlistButton , "Playlist");
-			_toolTip.register(_shareButton, "Share|Embed");
-			//_toolTip.register(_HDmeter, "HD Meter");
+			_toolTip.register(_shareButton, "Share|Embed");			
+			_toolTip.register(_HDmeter, "HD Meter");
+			_toolTip.register(_captionButton, "Caption");
 			_toolTip.register(_HDmeter, "Current Bitrate");
+*/			
 			_container.addChild(_toolTip);
 		}
 		
-		// added by jerwin s. espiritu
-				
-		private function pixelMouseDown(evt:Event):void{
-			_pixelButton.x += 1;
-			_pixelButton.y += 1;
-			_controller.playClickSound();
+		// added by jerwin s. espiritu				
+		private function replay(e:MouseEvent):void{
+			_playButton.visible = false;
+			_pauseButton.visible = true;			
+			_controller.replay();
 		}
-		private function pixelMouseUp(evt:Event):void{
-			_pixelButton.x -= 1;
-			_pixelButton.y -= 1;			
-		}		
-		private function togglePixel(e:MouseEvent):void {
-			_controller.togglePixel();
-			_model.hideGroupList();
-		}
-		private function toggleGroupList(e:MouseEvent):void {
-			_controller.toggleGroupList();
-			//_groupListHideButton.visible = false;
-			_model.hideSettings();
-		}
-
+/*				
 		private function togglePopUp(e:MouseEvent):void {
 			_controller.togglePopUp();
-			_model.hideSettings();
-			_model.hideGroupList();
-		}
-		private function doBack(e:MouseEvent):void {
-			_playButton.visible = true;
-			_pauseButton.visible = false;
-			_controller.pause();			
-		}
-		private function doBackHandler(e:MouseEvent): void 
-		{
-			_items = _model.playlistItems;
-			
-			if(stage.displayState == StageDisplayState.FULL_SCREEN)
-			{
-				stage.displayState = StageDisplayState.NORMAL;
-			}
-			
-			for(var i:uint=0; i < _items.length; i++){
-				if(ItemTO(_items[i]).media.getContentAt(0).url == _model.src){
-					_currentIndex = i;
-				}
-			}
-			var x:uint = (_currentIndex == 0) ? _items.length - 1: _currentIndex - 1;
-			_playButton.visible = false;
-			_pauseButton.visible = true;
-			
-			_model.src = ItemTO(_items[x]).media.getContentAt(0).url;
-			
-			// call changeData javascript function
-			_movieId = ItemTO(_items[x]).author;			
-			//changeData(_movieId); // =======================================================
-			_model.overrideAutoStart=_model.overrideAutoStart==0?0:2;
-			_model.playStart();
-		}		
-		private function doForward(e:MouseEvent):void {
-			_items = _model.playlistItems;
-			
-			if(stage.displayState == StageDisplayState.FULL_SCREEN)
-			{
-				stage.displayState = StageDisplayState.NORMAL;
-			}
-			
-			for(var i:uint=0; i < _items.length; i++){
-				if(ItemTO(_items[i]).media.getContentAt(0).url == _model.src){
-					_currentIndex = i;
-				}
-			}
-			
-			var x:uint;
-			x = (_currentIndex == _items.length - 1) ? 0: _currentIndex + 1;
-			
-			_playButton.visible = false;
-			_pauseButton.visible = true;
-		
-			_model.src = ItemTO(_items[x]).media.getContentAt(0).url;
-			// call changeData javascript function
-			_movieId = ItemTO(_items[x]).author;
-			 changeData(_movieId); // ===================================================
-			_model.overrideAutoStart = _model.overrideAutoStart==0?0:2;
-			_model.playStart();
 		}
 		
-		private function changeData(id:String):void{
-			if(ExternalInterface.available)
-			{
-				ExternalInterface.call("changeData(" + id + ")");
-			}
-		}
-		
-/*		private function toggleCaption(e:Event):void{
+		private function toggleCaption(e:Event):void{
 			_controller.toggleCaption();
 			_captionOnOff = !_captionOnOff;
 			_captionButton.highlight.alpha = _captionOnOff ? 1:0;
 			
 		}
-*/		
 		private function toggleCinemaMode(e:MouseEvent):void{
 			ExternalInterface.call("cinemaMode()");
 			_model.hideSettings();
-			_model.hideGroupList();			
 			_cinemaOnOff = !_cinemaOnOff;
 			_cinemaModeButton.highlight.alpha = _cinemaOnOff ? 1:0;			
 		}
 		private function toggleSubtitle(e:MouseEvent):void{
 			_model.hideSettings();
-			_model.hideGroupList();			
 			_subtitleOnOff = !_subtitleOnOff;
 			_subtitleButton.highlight.alpha = _subtitleOnOff ? 1:0;
 		}
+*/		
 		
-		private function toggleContinousPlay(e:MouseEvent):void{
-			_model.hideSettings();
-			_model.hideGroupList();			
-			_continousPlayOnOff = !_continousPlayOnOff;
-//			_continousPlayButton.highlight.alpha = _continousPlayOnOff ? 0:1;
-			_model.overrideAutoStart = _continousPlayOnOff?0:1;
-			trace("TOGGLE Continuous play " + _model.overrideAutoStart);
-		}
 		// ------------------------ end
 		
 		private function buttonMouseOver(e:MouseEvent):void {
@@ -497,12 +349,6 @@ package view{
 			e.currentTarget.x -= 1;
 			e.currentTarget.y -= 1;
 		}
-		private function settingsMouseOver(e:MouseEvent):void{
-			//trace('settings mouse over');
-		}
-		private function settingsMouseOut(e:MouseEvent):void{
-			//trace('settings mouse out');
-		}
 		private function genericMouseOver(e:MouseEvent):void {
 			e.currentTarget.icon.transform.colorTransform = _themeTransform;
 		}
@@ -510,22 +356,21 @@ package view{
 			e.currentTarget.icon.transform.colorTransform = _b6b6b6Transform;
 		}
 		private function doPlay(e:MouseEvent):void {
-			_model.playingState = true;
 			_playButton.visible = false;
 			_pauseButton.visible = true;
 			_controller.play();			
 		}
 		private function doPause(e:MouseEvent):void {
-			_model.playingState = false;			
 			_playButton.visible = true;
 			_pauseButton.visible = false;
 			_controller.pause();
 			
 		}
-		
+/*		
 		private function togglePlaylist(e:MouseEvent):void {
 			_controller.togglePlaylist();
 		}
+*/		
 		private function toggleFullscreen(e:MouseEvent):void {
 			_controller.toggleFullscreen();
 		}
@@ -533,7 +378,14 @@ package view{
 			_controller.toggleShare();
 		}
 		private function endOfItemHandler(e:Event):void {	
-			if(!_model.overrideAutoStart)
+			_model.playCount = _model.playCount + 1;
+			if(_model.playCount > 1)
+			{
+				_model.seek(0);
+				_model.pause();
+				_model.stopPlayback();
+			}
+			if(_model.overrideAutoStart>0)
 			{
 				_playButton.visible = true;
 				_pauseButton.visible = false;				
@@ -574,19 +426,17 @@ package view{
 		public function resize(e:Event):void  {
 			//draw background
 			_background.graphics.clear();
-			_playlistButton.visible = _model.hasPlaylist;
+//			_playlistButton.visible = _model.hasPlaylist;
+//			_HDmeter.visible = _model.isMultiBitrate;
 			_shareButton.visible = _model.hasShareOrEmbed;
-			_HDmeter.visible = _model.isMultiBitrate;
-			
-			
+						
 			if (_model.isOverlay) {
-				//_background.graphics.beginFill(_model.controlbarOverlayColor,1);
 				_background.graphics.beginFill(0X1b2023,1);
 				_background.graphics.drawRect(3,_model.height+33-_model.controlbarHeight,_model.width -6 ,_model.controlbarHeight-30);
 				_background.graphics.endFill();
 				_container.x = 3;
 				_container.y = _model.height+33-_model.controlbarHeight;
-				//_background.graphics.beginFill(0x141313,1);
+				
 				_background.graphics.beginFill(0x272a2b,1);
 				_background.graphics.drawRect(3,_model.height+33-_model.controlbarHeight,_model.width -6 ,_model.controlbarHeight-50);
 				_background.graphics.endFill();
@@ -610,9 +460,10 @@ package view{
 			
 			var availableWidth:Number = _model.width - (_model.isOverlay ? 0:(_model.hasPlaylist && _model.playlistVisible) ? _model.playlistWidth+6:0) - 6;
 
-			_playlistButton.width = 0;
-			_playlistButton.visible = false;
+//			_playlistButton.width = 0;
+//			_playlistButton.visible = false;
 			_volumeSlider.setWidth(10);
+			
 			
 			/* Top Video Display*/
 //			_cinemaModeButton.x = availableWidth - 6 - _cinemaModeButton.width;
@@ -621,38 +472,20 @@ package view{
 //			_subtitleButton.y = (_model.height/4) - _model.height + 30;
 //			_popOutButton.x = availableWidth - 6 - _popOutButton.width;
 //			_popOutButton.y = (_model.height/4) - _model.height + 60;
-			_cinemaModeButton.visible = false;
-			_subtitleButton.visible = false;
-			_popOutButton.visible = false;
+//			_cinemaModeButton.visible = false;
+//			_subtitleButton.visible = false;
+//			_popOutButton.visible = false;
 			
 			/* Left Control Bar */
-			_backwardButton.x = availableWidth - availableWidth + 35;
-			_forwardButton.x = availableWidth - availableWidth + 65; 
-			_volumeSlider.x = (_model.hasPlaylist)?availableWidth - availableWidth + 145:availableWidth - availableWidth + 65; 
+			_volumeSlider.x = (_model.hasPlaylist)?availableWidth - availableWidth + 65:availableWidth - availableWidth + 65; 
 
 			/* Right Control Bar*/
 			_fullscreenButton.x = availableWidth - 40;
-			_continousPlayButton.x = availableWidth - 90;
-			_groupListButton.x = availableWidth - 140;
-			
-			/* Disable button below */
-			_continousPlayButton.visible = false;
-			_groupListButton.visible = false;
-			
-			
-			if(_model.isDynamic)
-			{
-				_HDmeter.x = availableWidth - 250;
-				_pixelButton.visible = false;
-				_pixelButton.width = 0;
-			}
-			else
-			{
-				//_pixelButton.x = availableWidth - 200;
-				_pixelButton.visible = false;
-			}
-			
-			
+						
+//			if(_model.isDynamic)
+//			{
+//				_HDmeter.x = availableWidth - 250;
+//			}
 			
 			/* Scrub Bar Position*/
 			_scrubBar.y = -4;

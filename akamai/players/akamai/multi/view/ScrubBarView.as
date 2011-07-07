@@ -64,12 +64,11 @@ package view{
 		private var _timeFrameTextLabel:TextField;
 
 		public function ScrubBarView(model:Model):void {
-			_model=model;
-			
-//			_leftLabelXPosition = (_model.hasPlaylist)?140:60;
-//			_rightLabelXPosition = (_model.hasPlaylist)?180:100;
-			_leftLabelXPosition = (_model.hasPlaylist)?180:100;
-			_rightLabelXPosition = (_model.hasPlaylist)?220:140;
+			_model=model;		
+			_leftLabelXPosition = 100;
+			_rightLabelXPosition = 140;
+//			_leftLabelXPosition = (_model.hasPlaylist)?180:100;
+//			_rightLabelXPosition = (_model.hasPlaylist)?220:140;
 			
 			_controller=new ScrubBarController(_model,this);
 			addEventListener(Event.ADDED_TO_STAGE, addReleaseOutsideHandler);
@@ -84,6 +83,7 @@ package view{
 			createChildren();
 		}
 		private function clickHandler(e:MouseEvent):void{
+			//_scrubber.x = (_scrubber.x - 1) * _model.streamLength / (_maxLength - 7);
 			_scrubber.x = _scrubberBar.mouseX;
 		}
 		
@@ -220,14 +220,20 @@ package view{
 		}
 		private function scrubberDown(e:MouseEvent):void {
 			//_scrubber.startDrag(false,new Rectangle(95,3,_maxLength-7,0));
-			_scrubber.startDrag(false,new Rectangle(1,-7,_maxLength-7,0));
-			_dragging = true;
+			if(!_model.isAdContent)
+			{
+				_scrubber.startDrag(false,new Rectangle(1,-7,_maxLength-7,0));
+				_dragging = true;
+			}
 		}
 		private function scrubberUp(e:MouseEvent):void {
-			_scrubber.stopDrag();
-			//var t:Number = (_scrubber.x - 95) * _model.streamLength / (_maxLength -7);
-			var t:Number = (_scrubber.x - 1) * _model.streamLength / (_maxLength -7);
-			_controller.seek(t);
+			if(!_model.isAdContent)
+			{
+				_scrubber.stopDrag();
+				//var t:Number = (_scrubber.x - 95) * _model.streamLength / (_maxLength -7);
+				var t:Number = (_scrubber.x - 1) * _model.streamLength / (_maxLength - 7);
+				_controller.seek(t);
+			}
 		}
 
 		private function getTimeFrame(e:Event)
@@ -304,11 +310,19 @@ package view{
 			}
 		}
 		private function progressHandler(e:Event):void {
+			if(_model.isAdContent)
+			{
+				enable(false);
+			}
+			else
+			{
+				enable(true);
+			}
+			
 			if (!isNaN(_model.time) && (_model.isLive || !isNaN(_model.streamLength))) {
 				
 				_totalTimeDisplay.text = _model.isLive ? "LIVE":_model.streamLengthAsTimeCode;
-				_scrubber.visible = _currentProgress.visible = !_model.isLive;
-				
+				_scrubber.visible = _currentProgress.visible = !_model.isLive;				
 				
 				if (_model.isBuffering) {
 					_currentTimeDisplay.text = _model.bufferPercentage+"% / ";

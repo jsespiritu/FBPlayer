@@ -84,7 +84,7 @@ package controller{
 		private var _startPlayPending:Boolean;
 		private var _needToSetCuePointMgr:Boolean;
 		
-		// ----- test ------
+		// ----- HD VARIABLES ------
 		private var _nshd:HDNetStream;
 		private var netStream:NetStream;
 		private var netConnection:NetConnection;
@@ -134,6 +134,7 @@ package controller{
 		private function newSourceHandler(e:Event):void {
 			var protocol:String;
 			_view.video.clear();
+			
 			if (_ns is NetStream) {
 				_ns.pause();
 			}
@@ -143,7 +144,6 @@ package controller{
 			_isMultiBitrate = false;
 			switch (_model.srcType) {	
 				case _model.TYPE_AMD_ONDEMAND :
-					trace("TYPE_AMD_ONDEMAND");
 					this.isHD = false;
 					var host:String = _model.src.split("/")[2] + "/" + _model.src.split("/")[3];
 					_streamName = _model.src.slice(_model.src.indexOf(host) + host.length + 1);
@@ -161,32 +161,27 @@ package controller{
 					connect(host,protocol);
 					break;
 				case _model.TYPE_BOSS_STREAM :
-					trace("TYPE_BOSS_STREAM");
 					this.isHD = false;
 					_mustDetectBandwidth = false;
 					_boss.load(_model.src);
 
 					break;
 				case _model.TYPE_MEDIA_RSS :
-					trace("TYPE_MEDIA_RSS");
 					this.isHD = false;
 					_mustDetectBandwidth = false;
 					_rss.load(_model.src);
 					break;
 				case _model.TYPE_BOSS_PROGRESSIVE :
-					trace("TYPE_BOSS_PROGRESSIVE");
 					this.isHD = false;
 					_streamName = _model.src;
 					connect(null);
 					break;
 				case _model.TYPE_AMD_PROGRESSIVE :
-					trace("TYPE_AMD_PROGRESSIVE");
 					this.isHD = false;
 					_streamName = _model.src;
 					connect(null);
 					break;
 				case _model.TYPE_AMD_LIVE :
-					trace("TYPE_AMD_LIVE");
 					this.isHD = false;
 					var liveHost:String = _model.src.split("/")[2] + "/" + _model.src.split("/")[3];
 					_streamName = _model.src.slice(_model.src.indexOf(liveHost) + liveHost.length + 1);
@@ -196,7 +191,6 @@ package controller{
 					connect(liveHost,protocol);
 					break;
 				case _model.TYPE_MBR_SMIL :
-					trace("TYPE_MBR_SMIL");
 //					_mustDetectBandwidth = false;
 //					_SMILparser.load(_model.src);
 /*					netConnection = new NetConnection();
@@ -221,7 +215,6 @@ package controller{
 					_view.video.attachNetStream(_nshd);
 */					break;
 			}
-
 		}
 
 		// Handles a successful connection
@@ -260,9 +253,9 @@ package controller{
 				
 				if(!_model.playlistItems)
 				{
+					/* SINGLE ITEM */
 					if(_model.directPlay)
 					{
-						trace("----------------------------- single item -------------------------------------" + _model.src);
 						_nshd.play.apply(this, playArgs);
 						_view.video.attachNetStream(_nshd);
 					
@@ -282,8 +275,8 @@ package controller{
 				}
 				else
 				{
+					/* WITH PLAYLIST XML/RSS */
 					_model.singleItemInXML = (_model.playlistItems.length<2)?true:false;
-					trace("------------------------ whith playlist ------------------------------------------" + _model.src);
 					_nshd.play.apply(this, playArgs);
 					_view.video.attachNetStream(_nshd);
 				
@@ -324,15 +317,13 @@ package controller{
 					cuePointMgrSetHandler(null);
 				}
 				
-				_ns.createProgressivePauseEvents = true;
-				
+				_ns.createProgressivePauseEvents = true;				
 				volumeChangeHandler(null);
 				
 				_view.video.attachNetStream(_ns);
 				if (_mustDetectBandwidth) {
 					_ak.detectBandwidth();
 				} else {
-					trace("------------------------------------------------------------------" + _model.src);
 					playStream();
 				}
 				
@@ -501,7 +492,16 @@ package controller{
 		// Handles a successful stream length request
 
 		private function handleStreamLength(e:OvpEvent):void {
-			_model.streamLength = Number(e.data.streamLength);
+			
+			var totalStreamLength:Number = Number(e.data.streamLength);
+			if(_model.maxPlayingTime)
+			{
+				_model.streamLength = (totalStreamLength > _model.maxPlayingTime ? _model.maxPlayingTime : totalStreamLength);
+			}
+			else
+			{
+				_model.streamLength = totalStreamLength;
+			}
 		}
 
 //		private function handleHDStreamLength(e:HDEvent):void {
@@ -510,14 +510,27 @@ package controller{
 		
 		// Updates the UI elements as the  video plays
 		private function progressHandler(e:TimerEvent):void {
+			
 			if(!this.isHD)
 			{	
+				if(_model.time > _model.maxPlayingTime)
+				{
+					_model.endOfShow = true;
+					_model.streamLength = 0;
+					_model.seek(0);
+					_model.pause();
+					_view.video.clear();
+					_view.video.visible = false;
+					
+				}
+				//trace("time : " + _model.time);
 				if(_nshd is NetStream)
 				{
 					netConnection.close();
 					_nshd.close();
 				}
 				if (_ns && (_ns is AkamaiDynamicNetStream) && _ns.netConnection && (_ns.netConnection.connected)) {
+					
 					_model.time = _ns.time;
 					_model.bufferPercentage = _ns.bufferLength * 100 / _ns.bufferTime;
 					_model.bytesLoaded = _ns.bytesLoaded;
@@ -535,6 +548,15 @@ package controller{
 			}
 			else
 			{	
+				if(_model.time > _model.maxPlayingTime)
+				{
+					_model.endOfShow = true;
+					_model.streamLength = 0;
+					_model.seek(0);
+					_model.pause();
+					_view.video.clear();
+					_view.video.visible = false;
+				}
 				if(_ns is AkamaiDynamicNetStream)
 				{
 					_ns.close();
@@ -546,14 +568,19 @@ package controller{
 						_model.streamLength = 0; 
 					}
 					
-					_model.streamLength = (_model.streamLength<1?_nshd.duration:_model.streamLength);
-//					if(!_model.streamLength)
-//					{
-//						trace("TOTAL DURATION ===== " + _nshd.duration);
-//						_model.streamLength = _nshd.duration;						
-//					}
+					//_model.streamLength = (_model.streamLength<1?_nshd.duration:_model.streamLength);
 					
 					_model.time = _nshd.time;
+					
+					if(_model.maxPlayingTime)
+					{
+						_model.streamLength = (_nshd.duration > _model.maxPlayingTime ? _model.maxPlayingTime : _nshd.duration);
+					}
+					else
+					{
+						_model.streamLength = _nshd.duration;
+					}
+			
 	//				_model.bufferPercentage = _nshd.bufferLength * 100 / _nshd.bufferTime;
 	//				_model.bytesLoaded = _nshd.bytesLoaded;
 	//				_model.bytesTotal = _nshd.bytesTotal;
@@ -777,6 +804,7 @@ package controller{
 				
 				if(this.isHD)
 				{
+//					_model.seekTarget = (_model.seekTarget=""?0:_model.seekTarget);
 					_nshd.seek(_model.seekTarget);
 				}
 				else
@@ -786,10 +814,6 @@ package controller{
 			}
 		}
 		
-		private function seekHDHandler(e:HDEvent):void
-		{
-			_nshd.seek(_model.seekTarget);
-		}
 		// Handle a resubscribe attempt
 		private function handleSubscribeAttempt(e:OvpEvent):void {
 			_model.debug("Trying to re-subscribe to the live stream ...");

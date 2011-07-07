@@ -48,10 +48,12 @@ package controller {
 		}
 
 		public function play():void {
+			_model.playingState = true;
 			_model.play();
 		}
 
 		public function pause():void {
+			_model.playingState = false;			
 			_model.pause();
 		}
 
@@ -75,18 +77,21 @@ package controller {
 			_model.playClickSound();
 		}
 		// added by jerwin s. espiritu
-		public function togglePixel(): void {
-			_model.togglePixel();
-		}
 		public function toggleGroupList(): void {
 			_model.toggleGroupList();
 		}
 		public function togglePopUp(): void {
 			_model.togglePopUp();
+			_model.hideSettings();
+			_model.hideGroupList();			
 		}
 		public function toggleCaption(): void {
 			_model.toggleCaption();
 		}		
+		public function replay():void {
+			_model.endOfShow = false;
+			_model.playStart();						
+		}
 		// -------------- end
 	}
 }

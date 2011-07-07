@@ -48,6 +48,7 @@ package view {
 		private var _defaultImage:Loader;
 		private var _playButton:PlayButton;
 		private var _buyButton:BuyButton;
+		private var _replayButton:ReplayButton;
 		private var _innerShadow:InnerShadow;
 		private var _background:MovieClip;
 		private var _controller:VideoController;
@@ -102,6 +103,7 @@ package view {
 //			_innerShadow.scale9Grid = new Rectangle(5,5,784,584);
 //			_innerShadow.x = _innerShadow.y = 3;
 //			addChild(_innerShadow);
+
 			
 			if ( !_model.autoStart )
 			{
@@ -158,6 +160,7 @@ package view {
 					addChild( _playButton );
 				}
 				
+
 			}
 				
 			_lastVideoWidth = 0;
@@ -233,6 +236,7 @@ package view {
 				_buyButton.y = ((_availableVideoHeight - _buyButton.height ) /2);
 				
 			}
+			
 				
 		}
 		private function resize(e:Event):void  {
