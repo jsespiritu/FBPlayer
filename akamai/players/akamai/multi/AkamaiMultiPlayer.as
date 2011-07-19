@@ -626,7 +626,7 @@ package {
 			contextMenu.hideBuiltInItems();
 
 			//var idItem:ContextMenuItem=new ContextMenuItem("Built on OpenVideoPlayer v"+OvpVersion.version,true);
-			var playerVersion:ContextMenuItem=new ContextMenuItem("ABS-CBN Global Player Ver. 0.9.07072011",true);
+			var playerVersion:ContextMenuItem=new ContextMenuItem("ABS-CBN Global Player Ver. 0.9.07192011",true);
 			//idItem.addEventListener( ContextMenuEvent.MENU_ITEM_SELECT , idItemSelectHandler );
 			contextMenu.customItems.push( playerVersion );
 			
