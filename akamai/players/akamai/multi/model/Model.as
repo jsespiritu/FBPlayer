@@ -259,14 +259,13 @@ package model {
 			//flashvars.src="http://localhost/TFCHDPlayerBeta/akamai/grouplist1.xml";
 			//flashvars.src="http://localhost/TFCHDPlayerBeta/akamai/playlist2.xml";
 			//flashvars.src="http://localhost/TFCHDPlayerBeta/akamai/playlist4.xml";
-			//flashvars.src="http://localhost/TFCHDPlayerBeta/akamai/localplaylist.xml";
+			//flashvars.src="http://localhost/test/playlist_with_ad.xml";
 			//flashvars.src="http://localhost/TFCHDPlayerBeta/akamai/grouplist1.xml";
 			//flashvars.src="http://mediapm.edgesuite.net/osmf/content/test/akamai_10_year_500.mov";
 			//flashvars.src="http://mediapm.edgesuite.net/edgeflash/public/debug/assets/smil/nelly2.smil";
 			//flashvars.src="http://tfctvhdflashsg-f.akamaihd.net/smil/snn1.smil";
 			//flashvars.src="http://mediapm.edgesuite.net/edgeflash/public/debug/assets/smil/elephants2-sub-clips.smil";
 			//flashvars.src="http://localhost/videos/content/20100920-alyna4_sol-240.flv";
-			flashvars.src = url;
 			flashvars.mode = "overlay";
 			flashvars.isPlayable = "1";
 			flashvars.isLogin = "1";
@@ -295,7 +294,11 @@ package model {
 			c['00:50'] = "(*_*) (*_*) (*_*) (*_*) (*_*)";
 */			comment = c;
 //			flashvars.autostart = "false";
-			
+
+			/* enable the code below to get source xml from api */
+			//flashvars.src = url;
+
+
 			_src = flashvars.src == undefined?DEFAULT_SRC:unescape(flashvars.src.toString());
 			_isOverlay = flashvars.mode == undefined ?DEFAULT_ISOVERLAY:flashvars.mode.toString() == "overlay";
 			_frameColor = flashvars.frameColor == undefined ? DEFAULT_FRAMECOLOR:flashvars.frameColor.toString();

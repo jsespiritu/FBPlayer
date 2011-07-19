@@ -6,6 +6,7 @@ package view{
 	import model.Model;
 	import controller.*;
 	import ui.*;
+	import flash.utils.Timer;
 
 	public class VolumeSliderView extends MovieClip {
 		private var _model:Model;
@@ -30,6 +31,7 @@ package view{
 		private var _volumeBarYPosition:Number = -20;
 		private var _volumBarWidth:Number = 8;
 		private var _maxVolLevel:Number;
+		private var _timer:Timer;
 		
 		private var _volumdBarColor:Number = 0xeefbff;
 		
@@ -108,6 +110,7 @@ package view{
 
 			_volumeIcon=new VolumeIcon() ;
 			_volumeIcon.addEventListener(MouseEvent.MOUSE_OVER, displayVolumeLevel);
+			_volumeIcon.addEventListener(MouseEvent.MOUSE_OUT, hideTimer);
 			_volumeIcon.x=0;
 			_volumeIcon.y=0;
 			_volumeIcon.addEventListener(MouseEvent.CLICK,handleIconClick);
@@ -140,6 +143,13 @@ package view{
 			_background.visible = true;
 			_volumeBar.visible = true;
 //			_highlight.visible = true;
+		}
+		
+		private function hideTimer(e:Event):void
+		{
+			_timer = new Timer(1000, 3);
+			_timer.addEventListener( TimerEvent.TIMER_COMPLETE , hideVolumeBar );			
+			_timer.start();
 		}
 		
 		private function hideVolumeBar(e:Event)

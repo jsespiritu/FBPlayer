@@ -132,6 +132,7 @@ package view{
 		private function progressiveUpdate(e:Event){
 			if(_model.endOfShow)
 			{
+				_controller.pause();
 				_replayButton.visible = true;
 				_replayButton.x = ((_model.width - _replayButton.width )/2);
 				_replayButton.y = ((_model.width - _replayButton.height )/4);

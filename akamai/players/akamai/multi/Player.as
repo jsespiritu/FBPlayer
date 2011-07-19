@@ -146,13 +146,28 @@ package
             {
 				setStageListeners(onInitStageResize, false);
 				setStageListeners(onResize);				
-				
-				var flashvars:Object = loaderInfo.parameters;
-				
-				var contentid:String = (flashvars.contentID==undefined?"":flashvars.contentID);				
+								
+				/* enable the code below to get source xml from api */
+				/* start of block */
+				//var flashvars:Object = loaderInfo.parameters;
+				//var contentid:String = (flashvars.contentID==undefined?"":flashvars.contentID);				
+				//this.sendRequest(contentid);
+				/* end of block */
 
-				this.sendRequest(contentid);
+                
+				/* disble the code below if you want to get xml from API */
+				/* start of block */
+				player = new AkamaiMultiPlayer(stage.stageWidth, stage.stageHeight, loaderInfo.parameters);
 				
+                // If you want to rely on the src coming in as a flash var,  then comment-out the next line
+                player.setNewSource(getTestMedia());
+				//
+				var flasvars:Object = loaderInfo.parameters;
+				_model = new Model(flasvars);
+				_timer = new Timer(5000,1);
+                player.addEventListener("toggleFullscreen", handleFullscreen);
+                addChild(player);
+				/* end of block */
             }
         }
 		
@@ -176,37 +191,27 @@ package
                 _video = new Video();
                 _video = player.video;
 				
-                _video.width = _video.videoWidth;
+/*                _video.width = _video.videoWidth;
                 _video.height = _video.videoHeight;
                 _video.smoothing = false;
                 _video.x = 0;
                 _video.y = 0;
                 stage.addChild(_video);
 				
-				// handle fullscreen controlbar
-				
-				//var _container = new MovieClip();
-/*				var _background = new MovieClip();
-				
-				
-				_background.graphics.beginFill(0X1b2023,1);
-				_background.graphics.drawRect(0,0,40,60);
-				_background.graphics.endFill();
-				
-				_background.y = 220;
-				_playButton = new PlayButtonBig();
-				_playButton.width = 22;
-				_playButton.height = 20;
-				_playButton.x = 10;
-				_playButton.y = 10;
-				_playButton.addEventListener(MouseEvent.CLICK, toggleFullScreen);
-				_background.addChild(_playButton);
-				this.stage.addChild(_background);*/
-				
-				
                 stage.fullScreenSourceRect = new Rectangle(0, 0, _video.videoWidth, _video.videoHeight);
                 stage.displayState = StageDisplayState.FULL_SCREEN;				
-            }
+*/            
+                _video.width = stage.fullScreenWidth;
+                _video.height = stage.fullScreenHeight;
+                _video.smoothing = true;
+				_video.x=(stage.fullScreenWidth-_video.width)/2;
+				_video.y=(stage.fullScreenHeight-_video.height)/2;
+				player.addChildAt(_video, stage.numChildren + 1);
+				
+                stage.displayState = StageDisplayState.FULL_SCREEN;				
+				player.resizeTo( stage.fullScreenWidth , stage.fullScreenHeight );
+
+			}
 //			if(stage.displayState == "fullScreen"){
 //				stage.addEventListener(MouseEvent.MOUSE_MOVE,displayControlBar);
 //			}

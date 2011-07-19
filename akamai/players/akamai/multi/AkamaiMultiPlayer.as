@@ -797,14 +797,23 @@ package {
 		}
 		
 		private function toggleFullscreenHandler( e : Event ):void {
-			dispatchEvent( new Event( "toggleFullscreen" ));
-//			trace("Fullscreen TOGGLE!!!!!!!!!!");
-//			_model.enableControls();
-//			_model.showControlBar(true);
-//			if (stage.displayState==StageDisplayState.FULL_SCREEN) {
-//				_timer.reset();
-//				_timer.start();
-//			}
+			//dispatchEvent( new Event( "toggleFullscreen" ));
+			switch(stage.displayState)
+			{
+				case "normal":
+					stage.displayState = "fullScreen";
+					_video.width =  stage.fullScreenWidth;
+					_video.height = stage.fullScreenHeight;
+					_video.x=(stage.fullScreenWidth-_video.width)/2;
+					_video.y=(stage.fullScreenHeight-_video.height)/2;
+					_controlbar.resize(null);
+					resizeTo(stage.fullScreenWidth, stage.fullScreenHeight);
+				break;
+				
+				case "fullScreen":
+					stage.displayState = "normal";
+				break;
+			}
 		}
 
 		private function playStartHandler( e : Event = null ):void {
@@ -860,7 +869,7 @@ package {
 			}
 			else
 			{
-				var minuteTimer:Timer = new Timer(1000, 5);
+				var minuteTimer:Timer = new Timer(1000, _model.timeInterval);
 				minuteTimer.addEventListener(TimerEvent.TIMER, onTick);
 				minuteTimer.addEventListener(TimerEvent.TIMER_COMPLETE, onTimerComplete);
 				minuteTimer.start();
