@@ -90,7 +90,7 @@ package controller {
 		}		
 		public function replay():void {
 			_model.endOfShow = false;
-			_model.playStart();						
+			_model.play();						
 		}
 		// -------------- end
 	}

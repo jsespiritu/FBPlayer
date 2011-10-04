@@ -203,7 +203,7 @@ package view{
 			{
 				_volLevel = index / 100;
 				_controller.setVolume(_volLevel);
-			}			
+			}
 		}
 		
 		// toggle volume icon

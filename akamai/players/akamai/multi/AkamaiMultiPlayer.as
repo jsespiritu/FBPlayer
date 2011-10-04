@@ -626,7 +626,7 @@ package {
 			contextMenu.hideBuiltInItems();
 
 			//var idItem:ContextMenuItem=new ContextMenuItem("Built on OpenVideoPlayer v"+OvpVersion.version,true);
-			var playerVersion:ContextMenuItem=new ContextMenuItem("ABS-CBN Global Player Ver. 0.9.07192011",true);
+			var playerVersion:ContextMenuItem=new ContextMenuItem("ABS-CBN Global Player Ver. 0.9.10042011",true);
 			//idItem.addEventListener( ContextMenuEvent.MENU_ITEM_SELECT , idItemSelectHandler );
 			contextMenu.customItems.push( playerVersion );
 			
@@ -824,11 +824,20 @@ package {
 					updateState( OvpPlayerEvent.START_NEW_ITEM );				
 					dispatchEvent( new Event( "playStart" ));
 					
-					pausePlayer();
-					var minuteTimer:Timer = new Timer(1000, _model.timeInterval);
-					//minuteTimer.addEventListener(TimerEvent.TIMER, onTick);
-					minuteTimer.addEventListener(TimerEvent.TIMER_COMPLETE, onTimerComplete);
-					minuteTimer.start();
+					//pausePlayer();
+					if(!_model.isAdContent){
+						if(!_model.tickerDone){
+							//_video.visible = false
+							var minuteTimer:Timer = new Timer(1000, _model.timeInterval);
+							minuteTimer.addEventListener(TimerEvent.TIMER, onTick);
+							minuteTimer.addEventListener(TimerEvent.TIMER_COMPLETE, onTimerComplete);
+							minuteTimer.start();
+						}
+						else {
+							_video.visible = true;
+						}						
+					}
+					_model.play();
 				}
 			}
 			else
@@ -849,6 +858,7 @@ package {
 
         private function onTimerComplete(event:TimerEvent):void
         {
+			_model.tickerDone = true;
             _model.play();
         }		
 		

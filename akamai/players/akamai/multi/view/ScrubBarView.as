@@ -251,7 +251,7 @@ package view{
 			addChild(_timeFrameLabel);
 			_timeFrameLabel.visible = true;
 
-			_timeFrameTextLabel.embedFonts = true;
+			//_timeFrameTextLabel.embedFonts = true;
 			_timeFrameTextLabel.mouseEnabled = false;
 			_timeFrameTextLabel.selectable = false;
 			_timeFrameTextLabel.wordWrap = false;
@@ -262,12 +262,14 @@ package view{
 			_labelTextFormat.font = new AkamaiLCD().fontName;
 			_labelTextFormat.size = 10;
 			_labelTextFormat.align = TextFormatAlign.RIGHT;
-			_labelTextFormat.color = 0xffffff;// 0xcccccc; _model.themeColor
+			_labelTextFormat.color =  0xffffff;// 0xcccccc; _model.themeColor
 			_timeFrameTextLabel.defaultTextFormat = _labelTextFormat;
-			var tcXPosition:Number = _scrubberBar.mouseX - tc.length + (tc.length>7?4:2);
+			//var tcXPosition:Number = _scrubberBar.mouseX - tc.length + (tc.length>7?4:2);
+			var tcXPosition:Number = _scrubberBar.mouseX - tc.length + (tc.length>7?6:4);
 			_timeFrameTextLabel.x = tcXPosition;
 			_timeFrameTextLabel.y = -28;
 			_timeFrameTextLabel.text = tc;
+			
 			addChild(_timeFrameTextLabel);
 			_timeFrameTextLabel.visible = true;
 			//trace("_model.timeAsTimeCode === " + tc + " ---- " + timeStrCount);

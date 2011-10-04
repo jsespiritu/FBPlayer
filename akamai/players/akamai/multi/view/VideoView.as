@@ -48,7 +48,6 @@ package view {
 		private var _defaultImage:Loader;
 		private var _playButton:PlayButton;
 		private var _buyButton:BuyButton;
-		private var _replayButton:ReplayButton;
 		private var _innerShadow:InnerShadow;
 		private var _background:MovieClip;
 		private var _controller:VideoController;
@@ -57,9 +56,14 @@ package view {
 		private var _lastVideoWidth:Number;
 		private var _lastVideoHeight:Number;
 		
+		private var _adMessageTextFieldBG:TextField;  // ad message
+		private var _adMessageTextField:TextField;    // ad message
+
 		//transforms used for play button overlay
 		private var _themeTransform:ColorTransform;
 		private var _b6b6b6Transform:ColorTransform;
+		
+		public var replayButton:ReplayButton;
 		
 		public function VideoView(model:Model):void {
 			_model = model;
@@ -86,8 +90,25 @@ package view {
 		private function exitFullScreen( e : FullScreenEvent = null ):void {
 			if (e && !e.fullScreen) {
 				addChild(_video);
+				stage.addChild(_adMessageTextFieldBG);
+				stage.addChild(_adMessageTextField);				
+			}
+			else {
+				stage.addChild(_adMessageTextFieldBG);
+				stage.addChild(_adMessageTextField);				
 			}
 		}
+		
+		/* ad message count down */
+		public function displayAdMessage(active:Boolean = false, time:String = ""):void{
+			if(Number(time)>0){
+				_adMessageTextFieldBG.text = "Your video will start in " + time + " sec.";
+				_adMessageTextField.text = "Your video will start in " + time + " sec.";
+			}
+			_adMessageTextFieldBG.visible = active;
+			_adMessageTextField.visible = active;
+		}
+		
 		private function createChildren():void {
 			_background = new MovieClip();
 			addChild(_background);
@@ -99,11 +120,66 @@ package view {
 			_video.y = 3;
 			
 			addChild(_video);
-//			_innerShadow = new InnerShadow();
-//			_innerShadow.scale9Grid = new Rectangle(5,5,784,584);
-//			_innerShadow.x = _innerShadow.y = 3;
-//			addChild(_innerShadow);
 
+			replayButton = new ReplayButton();
+			var replayTextField:TextField = new TextField();
+			replayTextField.embedFonts = true;
+			
+			var replayTextFormat:TextFormat = new TextFormat();
+			replayTextFormat.font = new AkamaiArialBold().fontName;
+			replayTextFormat.bold = 1;
+			replayTextFormat.size = 6;
+			replayTextFormat.color = "0XFFFFFF";
+			replayTextField.defaultTextFormat = replayTextFormat;
+			replayTextField.text = "Replay";
+			replayTextField.width = 50;
+			replayTextField.height = 20;
+			//replayTextField.x = 10;
+			replayTextField.x = 17;
+			replayTextField.y = 2;
+			
+			replayButton.addChild(replayTextField);
+			replayButton.highlight.alpha = 0;
+			replayButton.addEventListener(MouseEvent.MOUSE_DOWN,buttonMouseOver);
+			replayButton.addEventListener(MouseEvent.MOUSE_UP,buttonMouseOut);
+			replayButton.addEventListener(MouseEvent.CLICK,replay);
+			replayButton.scaleX = 3;
+			replayButton.scaleY = 3;
+//			_replayButton.x = (_model.width-_replayButton.width) / 2;
+//			_replayButton.y = ((_model.width - _replayButton.height )/2) - 100;
+			//this.resize(null);
+			
+			replayButton.buttonMode = true;
+			
+			addChild(replayButton);
+			replayButton.visible = false;
+
+			/* For Ads Display Message*/
+			_adMessageTextFieldBG = new TextField();
+			_adMessageTextFieldBG.embedFonts = true;
+			var adMessageTextFormatBG = new TextFormat();
+			adMessageTextFormatBG.font = new AkamaiArialBold().fontName;
+			adMessageTextFormatBG.size = 12.5;
+			adMessageTextFormatBG.bold = 5;
+			adMessageTextFormatBG.color = 0x000000;
+			_adMessageTextFieldBG.defaultTextFormat = adMessageTextFormatBG;
+			_adMessageTextFieldBG.width = 310;
+			_adMessageTextFieldBG.height = 20;
+			addChild(_adMessageTextFieldBG);
+			_adMessageTextFieldBG.visible = false;
+			
+			_adMessageTextField = new TextField();
+			_adMessageTextField.embedFonts = true;
+			var adMessageTextFormat = new TextFormat();
+			adMessageTextFormat.font = new AkamaiArialBold().fontName;
+			adMessageTextFormat.size = 13;
+			adMessageTextFormat.bold = 0;
+			adMessageTextFormat.color = _model.fontColor;
+			_adMessageTextField.defaultTextFormat = adMessageTextFormat;
+			_adMessageTextField.width = 310;
+			_adMessageTextField.height = 20;
+			addChild(_adMessageTextField);			
+			_adMessageTextField.visible = false;
 			
 			if ( !_model.autoStart )
 			{
@@ -158,15 +234,19 @@ package view {
 					_playButton.scaleY = 3;
 					_playButton.alpha = .75;
 					addChild( _playButton );
-				}
-				
-
+				}				
 			}
 				
 			_lastVideoWidth = 0;
 			_lastVideoHeight = 0;
 		}
 		
+		private function replay(e:MouseEvent):void{	
+			_model.endOfShow = false;
+			replayButton.visible = false;
+			_model.play();
+		}
+
 		// added by jerwin espiritu
 		private function doBuy(e:MouseEvent):void{
 			ExternalInterface.call("confirmBuy()");			
@@ -233,10 +313,8 @@ package view {
 			if(!_model.isPlayable)
 			{
 				_buyButton.x = ((_availableVideoWidth - _buyButton.width ) /2);
-				_buyButton.y = ((_availableVideoHeight - _buyButton.height ) /2);
-				
+				_buyButton.y = ((_availableVideoHeight - _buyButton.height ) /2);				
 			}
-			
 				
 		}
 		private function resize(e:Event):void  {
@@ -287,5 +365,12 @@ package view {
 			_model.play();
 			_model.showPauseButton();
 		}
+		private function buttonMouseOver(e:MouseEvent):void {
+				e.currentTarget.highlight.alpha = 1;
+		}
+		private function buttonMouseOut(e:MouseEvent):void {
+				e.currentTarget.highlight.alpha = 0;
+		}
+		
 	}
 }

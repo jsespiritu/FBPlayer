@@ -122,14 +122,20 @@ package model {
 		public var commentWidth:Number;
 		public var overrideAutoStart:Number = 0;
 		public var isDynamic:Boolean = false;
-		public var timeInterval:Number = 1;
+		public var timeInterval:Number = 2; // << -----  time interval before it play
+		public var tickerDone:Boolean =false; // << ---  tagging if ticker is done
 		public var directPlay:Boolean = false;
 		public var singleItemInXML:Boolean;
 		public var playingState:Boolean = true;
-		public var maxPlayingTime:Number = 60;
+		public var maxPlayingTime:Number = 0;
 		public var playCount:Number = 0;
 		public var isAdContent:Boolean = false;
 		public var endOfShow:Boolean = false;
+		public var videoStartPointTagged:Boolean = false;
+		public var videoStartPoint:Number = 30;
+		public var videoEndPoint:Number = 35;
+		public var isSkipDone:Boolean = false;
+		
 		// -------- end --------------
 		
 		//Declare private constants
@@ -202,8 +208,7 @@ package model {
 		public const EVENT_SET_CUEPOINT_MGR:String = "EVENT_SET_CUEPOINT_MGR";
 		public const EVENT_STREAM_NOT_FOUND:String = "EVENT_STREAM_NOT_FOUND";
 		public const EVENT_OVPCONNECTION_CREATED:String = "OVPCONNECTION_CREATED";
-		public const EVENT_OVPNETSTREAM_CREATED:String = "OVPNETSTREAM_CREATED";
-
+		public const EVENT_OVPNETSTREAM_CREATED:String = "OVPNETSTREAM_CREATED";		
 
 		// Error constants
 		public const ERROR_INVALID_PROTOCOL:String = "ERROR_INVALID_PROTOCOL";
@@ -241,13 +246,13 @@ package model {
 		public const TYPE_MEDIA_RSS:String = "TYPE_MEDIA_RSS";
 		public const TYPE_MBR_SMIL:String = "TYPE_MBR_SMIL";
 		public const TYPE_UNRECOGNIZED:String = "TYPE_UNRECOGNIZED";
+		public const TYPE_ZSTREAM:String = "TYPE_ZSTREAM";
 		
 		// Scale mode constants
 		public const SCALE_MODE_FIT:String = "SCALE_MODE_FIT";
 		public const SCALE_MODE_STRETCH:String = "SCALE_MODE_STRETCH";
 		public const SCALE_MODE_NATIVE:String = "SCALE_MODE_NATIVE";
-		public const SCALE_MODE_NATIVE_OR_SMALLER:String = "SCALE_MODE_NATIVE_OR_SMALLER";
-		
+		public const SCALE_MODE_NATIVE_OR_SMALLER:String = "SCALE_MODE_NATIVE_OR_SMALLER";		
 
 		public function Model(flashvars:Object, url:String = ""):void {
 			init(flashvars, url);
@@ -258,17 +263,18 @@ package model {
 			//flashvars.src="http://mediapm.edgesuite.net/ovp/content/demo/smil/elephants_dream.smil";
 			//flashvars.src="http://localhost/TFCHDPlayerBeta/akamai/grouplist1.xml";
 			//flashvars.src="http://localhost/TFCHDPlayerBeta/akamai/playlist2.xml";
-			//flashvars.src="http://localhost/TFCHDPlayerBeta/akamai/playlist4.xml";
-			//flashvars.src="http://localhost/test/playlist_with_ad.xml";
-			//flashvars.src="http://localhost/TFCHDPlayerBeta/akamai/grouplist1.xml";
-			//flashvars.src="http://mediapm.edgesuite.net/osmf/content/test/akamai_10_year_500.mov";
+			//flashvars.src="http://o1-f.akamaihd.net/imortal/20101110/20101110-imortal-,300000,500000,800000,1000000,1300000,1500000,.mp4.csmil";
+			//flashvars.src="http://localhost/test/fb_playlist.xml";
+			//flashvars.src="http://tfctvhdflashsg-f.akamaihd.net/z/mp4/20110409-mmk1-,500,800,1000,1300,1500,.mp4.csmil/manifest.f4m";
 			//flashvars.src="http://mediapm.edgesuite.net/edgeflash/public/debug/assets/smil/nelly2.smil";
-			//flashvars.src="http://tfctvhdflashsg-f.akamaihd.net/smil/snn1.smil";
-			//flashvars.src="http://mediapm.edgesuite.net/edgeflash/public/debug/assets/smil/elephants2-sub-clips.smil";
+			//flashvars.src="http://tfctvprogflashsg.edgesuite.net/smil/AB08242010.smil";
+			//flashvars.src="http://o1-f.akamaihd.net/imortal/20101110/20101110-imortal,300000,500000,800000,1000000,1300000,1500000,.mp4";
 			//flashvars.src="http://localhost/videos/content/20100920-alyna4_sol-240.flv";
+			//flashvars.src="http://localhost/test/fb_playlist.xml";
 			flashvars.mode = "overlay";
 			flashvars.isPlayable = "1";
 			flashvars.isLogin = "1";
+			//flashvars.allowPlayingTime = "15";
 			//flashvars.maxPlayingTime = "0";
 			//flashvars.trackNo = "8";
 			//flashvars.timeInterval = "10";
@@ -298,7 +304,6 @@ package model {
 			/* enable the code below to get source xml from api */
 			//flashvars.src = url;
 
-
 			_src = flashvars.src == undefined?DEFAULT_SRC:unescape(flashvars.src.toString());
 			_isOverlay = flashvars.mode == undefined ?DEFAULT_ISOVERLAY:flashvars.mode.toString() == "overlay";
 			_frameColor = flashvars.frameColor == undefined ? DEFAULT_FRAMECOLOR:flashvars.frameColor.toString();
@@ -323,11 +328,14 @@ package model {
 			commentY= flashvars.commentY == undefined? 1 : int(flashvars.commentY.toString());
 			commentWidth= flashvars.commentWidth == undefined? 600 : int(flashvars.commentWidth.toString());
 			timeInterval = flashvars.timeInterval == undefined ? timeInterval:flashvars.timeInterval;
-			maxPlayingTime = flashvars.allowPlayingTime == undefined ? maxPlayingTime : Number(flashvars.maxPlayingTime.toString());
+			maxPlayingTime = flashvars.allowPlayingTime == undefined ? maxPlayingTime : Number(flashvars.allowPlayingTime.toString());
+			videoStartPoint = flashvars.startPoint == undefined ? videoStartPoint : Number(flashvars.startPoint.toString());
+			videoEndPoint = flashvars.endPoint == undefined ? videoEndPoint : Number(flashvars.endPoint.toString());
 			// ---- end
 			//
 			// call login modal
 			//$('#modal_login').modal();
+			
 			
 			if (flashvars.scaleMode == undefined) {
 				_scaleMode  = SCALE_MODE_FIT;
@@ -354,8 +362,7 @@ package model {
 		}
 		
 		
-		public function set stage(value:Stage):void
-		{
+		public function set stage(value:Stage):void{
 			_stage = value;			
 		}
 		
@@ -446,8 +453,7 @@ package model {
 		public function set isMultiBitrate(isMultiBitrate:Boolean):void {
 			_isMultiBitrate = isMultiBitrate;
 			// Send resize event so that ui compoenents can draw the HD meter if required			
-			if (!_stage || _stage.displayState != StageDisplayState.FULL_SCREEN)
-			{
+			if (!_stage || _stage.displayState != StageDisplayState.FULL_SCREEN){
 				sendEvent(EVENT_RESIZE);
 			}			
 		}
@@ -646,8 +652,7 @@ package model {
 		}
 		public function togglePlaylist():void {
 			sendEvent(EVENT_TOGGLE_PLAYLIST);
-			if (!_stage || _stage.displayState != StageDisplayState.FULL_SCREEN)
-			{
+			if (!_stage || _stage.displayState != StageDisplayState.FULL_SCREEN){
 				sendEvent(EVENT_RESIZE);
 			}
 		}
@@ -696,8 +701,7 @@ package model {
 /*			if(overrideAutoStart > 0){
 				_autoStart = overrideAutoStart%2?true:false;
 			}
-*/			if(isLogin)
-			{
+*/			if(isLogin){
 				if(isPlayable){
 					return _autoStart;
 				}
@@ -705,8 +709,7 @@ package model {
 					return false;
 				}
 			}
-			else
-			{
+			else{
 				return false;
 			}
 			//return (isPlayable?_autostart:false);
@@ -783,37 +786,32 @@ package model {
 		}
 		public function toggleShare(): void {
 			sendEvent(EVENT_TOGGLE_LINK);
-			if (!_stage || _stage.displayState != StageDisplayState.FULL_SCREEN)
-			{
+			if (!_stage || _stage.displayState != StageDisplayState.FULL_SCREEN){
 				sendEvent(EVENT_RESIZE);
 			}
 		}
 		// added by jerwin s. espiritu		
 		public function togglePixel(): void {
 			sendEvent(EVENT_TOGGLE_PIXEL);
-			if (!_stage || _stage.displayState != StageDisplayState.FULL_SCREEN)
-			{
+			if (!_stage || _stage.displayState != StageDisplayState.FULL_SCREEN){
 				sendEvent(EVENT_RESIZE);
 			}
 		}
 		public function toggleGroupList(): void {
 			sendEvent(EVENT_TOGGLE_GROUPLIST);
-			if (!_stage || _stage.displayState != StageDisplayState.FULL_SCREEN)
-			{
+			if (!_stage || _stage.displayState != StageDisplayState.FULL_SCREEN){
 				sendEvent(EVENT_RESIZE);
 			}
 		}
 		public function toggleCaption(): void {
 			sendEvent(EVENT_TOGGLE_CAPTION);
-			if (!_stage || _stage.displayState != StageDisplayState.FULL_SCREEN)
-			{
+			if (!_stage || _stage.displayState != StageDisplayState.FULL_SCREEN){
 				sendEvent(EVENT_RESIZE);
 			}
 		}		
 		public function togglePopUp(): void {
 			sendEvent(EVENT_CLICK_POPUP);
-			if (!_stage || _stage.displayState != StageDisplayState.FULL_SCREEN)
-			{
+			if (!_stage || _stage.displayState != StageDisplayState.FULL_SCREEN){
 				sendEvent(EVENT_RESIZE);
 			}
 		}
@@ -946,15 +944,12 @@ package model {
 			/* if forcePlayIndex have a value it will override the source URL */
 			if(_forcePlayIndex != "" && _items != null){
 				for(var x:uint=0; x < _items.length; x++){
-					if(ItemTO(_items[x]).author == _forcePlayIndex)
-					{
+					if(ItemTO(_items[x]).author == _forcePlayIndex){
 						_src = ItemTO(_items[x]).media.getContentAt(0).url;
-						if(ItemTO(_items[x]).description.toString().toLocaleLowerCase() == "adcontent")
-						{
+						if(ItemTO(_items[x]).description.toString().toLocaleLowerCase() == "adcontent"){
 							isAdContent = true;
 						}
-						else
-						{
+						else{
 							isAdContent = false;
 						}
 					}
@@ -967,19 +962,15 @@ package model {
 				/*
 					if the value of description in xml is equal to adcontent it will hide the controlbar
 				*/
-				if(_items != null)
-				{
+				if(_items != null){
 					for(var j:uint=0; j < _items.length; j++){
 						
-						if(ItemTO(_items[j]).media.getContentAt(0).url == _src)
-						{
-							if(ItemTO(_items[j]).description == "adcontent")
-							{
+						if(ItemTO(_items[j]).media.getContentAt(0).url == _src){
+							if(ItemTO(_items[j]).description == "adcontent"){
 								isAdContent = true;
 								//showControlBar(false);
 							}
-							else
-							{
+							else{
 								isAdContent = false;
 								//showControlBar(true);
 							}
@@ -1015,6 +1006,8 @@ package model {
 					_srcType = TYPE_BOSS_PROGRESSIVE;
 				} else if (protocol == "http" && (_src.toLowerCase().indexOf("genfeed.php") != -1 || extension == "" || extension == "xml" || extension == "rss" || splitExtension == "com")) {
 					_srcType = TYPE_MEDIA_RSS;
+				} else if(extension == "f4m") {
+					_srcType = TYPE_ZSTREAM;
 				} else if (extension == "smil" || (_src.toLowerCase().indexOf("theplatform") != -1  && _src.toLowerCase().indexOf("smil") != -1 )) {
 					_srcType = TYPE_MBR_SMIL;
 					// for disabling pixel icon purposes

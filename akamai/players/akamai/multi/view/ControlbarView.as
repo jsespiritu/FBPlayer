@@ -79,9 +79,10 @@ package view{
 		private var _captionOnOff:Boolean = false;
 		private var _cinemaOnOff:Boolean = false;
 		private var _subtitleOnOff:Boolean = false;
-*/		
 		private var _replayButton:ReplayButton;		
-		private var _volumeSlider:VolumeSliderView;		
+*/		
+		private var _volumeSlider:VolumeSliderView;
+		private var _TFClogo:TFClogo = new TFClogo();
 		
 		// ----------------------- end 
 
@@ -100,50 +101,51 @@ package view{
 			createChildren();
 			this.visible = !_model.isOverlay;
 			
-			_replayButton = new ReplayButton();
-			var replayTextField:TextField = new TextField();
-			replayTextField.embedFonts = true;
-			
-			var replayTextFormat:TextFormat = new TextFormat();
-			replayTextFormat.font = new AkamaiArialBold().fontName;
-			replayTextFormat.bold = 1;
-			replayTextFormat.size = 6;
-			replayTextFormat.color = "0XFFFFFF";
-			replayTextField.defaultTextFormat = replayTextFormat;
-			replayTextField.text = "EPLAY";
-			replayTextField.width = 50;
-			replayTextField.height = 20;
-			replayTextField.x = 23;
-			replayTextField.y = 5;
-			
-			_replayButton.addChild(replayTextField);
-			_replayButton.highlight.alpha = 0;
-			_replayButton.addEventListener(MouseEvent.MOUSE_DOWN,buttonMouseOver);
-			_replayButton.addEventListener(MouseEvent.MOUSE_UP,buttonMouseOut);
-			_replayButton.addEventListener(MouseEvent.CLICK,replay);
-			_replayButton.scaleX = 3;
-			_replayButton.scaleY = 3;
-			
-			addChild(_replayButton);						
-			
-			_replayButton.visible = false;
+//			_replayButton = new ReplayButton();
+//			var replayTextField:TextField = new TextField();
+//			replayTextField.embedFonts = true;
+//			
+//			var replayTextFormat:TextFormat = new TextFormat();
+//			replayTextFormat.font = new AkamaiArialBold().fontName;
+//			replayTextFormat.bold = 1;
+//			replayTextFormat.size = 6;
+//			replayTextFormat.color = "0XFFFFFF";
+//			replayTextField.defaultTextFormat = replayTextFormat;
+//			replayTextField.text = "Replay";
+//			replayTextField.width = 50;
+//			replayTextField.height = 20;
+//			//replayTextField.x = 10;
+//			replayTextField.x = 17;
+//			replayTextField.y = 2;
+//			
+//			_replayButton.addChild(replayTextField);
+//			_replayButton.highlight.alpha = 0;
+//			_replayButton.addEventListener(MouseEvent.MOUSE_DOWN,buttonMouseOver);
+//			_replayButton.addEventListener(MouseEvent.MOUSE_UP,buttonMouseOut);
+//			_replayButton.addEventListener(MouseEvent.CLICK,replay);
+//			_replayButton.scaleX = 3;
+//			_replayButton.scaleY = 3;
+//			
+//			_replayButton.buttonMode = true;
+//			
+//			addChild(_replayButton);						
+//			
+//			_replayButton.visible = false;
 		}
 		
 		private function progressiveUpdate(e:Event){
 			if(_model.endOfShow)
 			{
 				_controller.pause();
-				_replayButton.visible = true;
-				_replayButton.x = ((_model.width - _replayButton.width )/2);
-				_replayButton.y = ((_model.width - _replayButton.height )/4);
+				//_replayButton.visible = true;
 				_playButton.visible = true;
 				_pauseButton.visible = false;
 				_pauseButton.mouseEnabled = false;
-				_playButton.mouseEnabled = false;								
+				_playButton.mouseEnabled = false;
 			}
 			else
 			{
-				_replayButton.visible = false;
+				//_replayButton.visible = false;
 
 				if(_model.isAdContent)
 				{
@@ -187,6 +189,9 @@ package view{
 			_pauseButton.y = 6;
 			_pauseButton.visible = _model.autoStart;
 			_container.addChild(_pauseButton);
+			// add TFC Logo
+			_TFClogo.y = 10;
+			_container.addChild(_TFClogo);
 			//Add fullscreen button
 			_fullscreenButton = new FullscreenButton();
 			_fullscreenButton.addEventListener(MouseEvent.MOUSE_DOWN,genericMouseDown);
@@ -217,69 +222,6 @@ package view{
 			_volumeSlider.y = 10;
 			_container.addChild(_volumeSlider);
 		
-/*
-			//Add playlist button
-			_playlistButton = new PlaylistHorizontalButton();
-			_playlistButton.addEventListener(MouseEvent.MOUSE_OVER,genericMouseOver);
-			_playlistButton.addEventListener(MouseEvent.MOUSE_OUT, genericMouseOut);
-			_playlistButton.addEventListener(MouseEvent.MOUSE_DOWN,genericMouseDown);
-			_playlistButton.addEventListener(MouseEvent.MOUSE_UP, genericMouseUp);
-			_playlistButton.addEventListener(MouseEvent.CLICK, togglePlaylist);
-			_playlistButton.x = 300;
-			_playlistButton.y = 6;
-			_container.addChild(_playlistButton);
-			// Add HDMeter
-			_HDmeter = new HDMeter2View(_model);
-			_HDmeter.y = 6;
-			_container.addChild(_HDmeter);
-
-			_captionButton = new CaptionButton();
-			_captionButton.highlight.transform.colorTransform = _themeTransform;
-			_captionButton.highlight.alpha = 0;
-			_captionButton.addEventListener(MouseEvent.MOUSE_DOWN,genericMouseDown);
-			_captionButton.addEventListener(MouseEvent.MOUSE_UP,genericMouseUp);
-			_captionButton.addEventListener(MouseEvent.CLICK,toggleCaption);
-			_captionButton.y = 6;
-			_container.addChild(_captionButton);
-						
-			_cinemaModeButton = new CinemaModeButton();
-			var cinemaModeButtonName:TextField = new TextField();
-			_cinemaModeButton.addEventListener(MouseEvent.MOUSE_DOWN,genericMouseDown);
-			_cinemaModeButton.addEventListener(MouseEvent.MOUSE_UP,genericMouseUp);
-			_cinemaModeButton.addEventListener(MouseEvent.CLICK,toggleCinemaMode);			
-			_container.addChild(_cinemaModeButton);
-						
-			_subtitleButton = new SubtitleButton();			
-			_subtitleButton.highlight.transform.colorTransform = _themeTransform;
-			_subtitleButton.highlight.alpha = 0;
-			_subtitleButton.addEventListener(MouseEvent.MOUSE_DOWN,genericMouseDown);
-			_subtitleButton.addEventListener(MouseEvent.MOUSE_UP,genericMouseUp);
-			_subtitleButton.addEventListener(MouseEvent.CLICK,toggleSubtitle);
-			_container.addChild(_subtitleButton);
-			
-			_popOutButton = new PopUp();
-			var popOutButtonName:TextField = new TextField();
-			popOutButtonName.embedFonts = true;
-			var popOutTextFormat:TextFormat = new TextFormat();
-			popOutTextFormat.font = new AkamaiArialBold().fontName;
-			popOutTextFormat.size = 12;
-			popOutTextFormat.bold = 1;
-			popOutTextFormat.color = _model.fontColor
-			popOutButtonName.defaultTextFormat = popOutTextFormat;
-			popOutButtonName.text = "Pop out";
-			popOutButtonName.width = 50;
-			popOutButtonName.height = 20;
-			popOutButtonName.x = 10;
-			popOutButtonName.y = 1;
-			_popOutButton.addChild(popOutButtonName);			
-			
-			_popOutButton.highlight.transform.colorTransform = _themeTransform;
-			_popOutButton.highlight.alpha = 0;
-			_popOutButton.addEventListener(MouseEvent.MOUSE_DOWN,genericMouseDown);
-			_popOutButton.addEventListener(MouseEvent.MOUSE_UP,genericMouseUp);
-			_popOutButton.addEventListener(MouseEvent.CLICK,togglePopUp);
-			_container.addChild(_popOutButton);
-*/						
 			if(!_model.isPlayable){
 				_playButton.width = 0;
 				_playButton.visible = false;
@@ -304,34 +246,11 @@ package view{
 		}
 		
 		// added by jerwin s. espiritu				
-		private function replay(e:MouseEvent):void{
-			_playButton.visible = false;
-			_pauseButton.visible = true;			
-			_controller.replay();
-		}
-/*				
-		private function togglePopUp(e:MouseEvent):void {
-			_controller.togglePopUp();
-		}
-		
-		private function toggleCaption(e:Event):void{
-			_controller.toggleCaption();
-			_captionOnOff = !_captionOnOff;
-			_captionButton.highlight.alpha = _captionOnOff ? 1:0;
-			
-		}
-		private function toggleCinemaMode(e:MouseEvent):void{
-			ExternalInterface.call("cinemaMode()");
-			_model.hideSettings();
-			_cinemaOnOff = !_cinemaOnOff;
-			_cinemaModeButton.highlight.alpha = _cinemaOnOff ? 1:0;			
-		}
-		private function toggleSubtitle(e:MouseEvent):void{
-			_model.hideSettings();
-			_subtitleOnOff = !_subtitleOnOff;
-			_subtitleButton.highlight.alpha = _subtitleOnOff ? 1:0;
-		}
-*/		
+//		private function replay(e:MouseEvent):void{
+//			_playButton.visible = false;
+//			_pauseButton.visible = true;			
+//			_controller.replay();
+//		}
 		
 		// ------------------------ end
 		
@@ -482,13 +401,19 @@ package view{
 
 			/* Right Control Bar*/
 			_fullscreenButton.x = availableWidth - 40;
+			_TFClogo.x = availableWidth - 120;
 						
 //			if(_model.isDynamic)
 //			{
 //				_HDmeter.x = availableWidth - 250;
 //			}
-			
+
+//			if(_replayButton.visible){
+//				_replayButton.x = (availableWidth / 2) - 50;
+//				_replayButton.y = ((_model.height)/2) - 30;
+//			}
 			/* Scrub Bar Position*/
+			_scrubBar.visible = false;
 			_scrubBar.y = -4;
 			_scrubBar.setWidth(_model.width);
 		}

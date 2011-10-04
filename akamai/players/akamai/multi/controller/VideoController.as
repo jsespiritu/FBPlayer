@@ -53,6 +53,8 @@ package controller{
 	// ------- HD Library
 	import com.akamai.hd.HDNetStream;
 	import com.akamai.hd.HDEvent;
+	import com.akamai.net.f4f.ZStream;	
+	import com.akamai.hdcore.samples.utility.Utils;		
 	
 	/**
 	 * Akamai Multi Player - controller working in conjunction with the VideoView
@@ -86,9 +88,15 @@ package controller{
 		
 		// ----- HD VARIABLES ------
 		private var _nshd:HDNetStream;
+		private var _nsz:ZStream;
 		private var netStream:NetStream;
 		private var netConnection:NetConnection;
+		
 		private var isHD:Boolean = false;
+		private var isZStream:Boolean = false;
+		
+		private var _host:String;
+		private var _protocol:String;
 		
 		// -------------------
 
@@ -145,6 +153,7 @@ package controller{
 			switch (_model.srcType) {	
 				case _model.TYPE_AMD_ONDEMAND :
 					this.isHD = false;
+					this.isZStream = false;
 					var host:String = _model.src.split("/")[2] + "/" + _model.src.split("/")[3];
 					_streamName = _model.src.slice(_model.src.indexOf(host) + host.length + 1);
 					if (_model.src.indexOf("?") != -1) {
@@ -162,27 +171,32 @@ package controller{
 					break;
 				case _model.TYPE_BOSS_STREAM :
 					this.isHD = false;
+					this.isZStream = false;
 					_mustDetectBandwidth = false;
 					_boss.load(_model.src);
 
 					break;
 				case _model.TYPE_MEDIA_RSS :
 					this.isHD = false;
+					this.isZStream = false;
 					_mustDetectBandwidth = false;
 					_rss.load(_model.src);
 					break;
 				case _model.TYPE_BOSS_PROGRESSIVE :
 					this.isHD = false;
+					this.isZStream = false;
 					_streamName = _model.src;
 					connect(null);
 					break;
 				case _model.TYPE_AMD_PROGRESSIVE :
 					this.isHD = false;
+					this.isZStream = false;
 					_streamName = _model.src;
 					connect(null);
 					break;
 				case _model.TYPE_AMD_LIVE :
 					this.isHD = false;
+					this.isZStream = false;
 					var liveHost:String = _model.src.split("/")[2] + "/" + _model.src.split("/")[3];
 					_streamName = _model.src.slice(_model.src.indexOf(liveHost) + liveHost.length + 1);
 					_isLive = true;
@@ -190,41 +204,28 @@ package controller{
 					protocol = _model.src.indexOf(":") != -1 ? _model.src.slice(0,_model.src.indexOf(":")).toLowerCase():"any";
 					connect(liveHost,protocol);
 					break;
-				case _model.TYPE_MBR_SMIL :
-//					_mustDetectBandwidth = false;
-//					_SMILparser.load(_model.src);
-/*					netConnection = new NetConnection();
-					netConnection.connect(null);
-					
-					_nshd = new HDNetStream(netConnection);
-					_nshd.loop = false;
-					var clipStartTime:Number=NaN;
-					var clipEndTime:Number=NaN
-*/
-//					var host:String = _model.src.split("/")[2] + "/" + _model.src.split("/")[3];
-//					var str:String = _model.src.slice(_model.src.indexOf(host) + host.length + 1);
-//					var ext:String = str.slice(-4);
-//					trace("HOST NAME === " + ext );			
+				case _model.TYPE_MBR_SMIL : /* Http Dynamic HD Streaming */
 					this.isHD = true;
+					this.isZStream = false;
 					connect(host, protocol);
-/*					var playArgs:Array = [_model.src, clipStartTime, clipEndTime];
-					_nshd.addEventListener(NetStatusEvent.NET_STATUS, netStreamStatusHandler);
-					_nshd.addEventListener(HDEvent.METADATA, onHDMetaData);
-					_nshd.addEventListener(HDEvent.COMPLETE, onComplete);
-					_nshd.play.apply(this, playArgs);
-					_view.video.attachNetStream(_nshd);
-*/					break;
+					break;
+				case _model.TYPE_ZSTREAM : /* Secure Zeri Streaming */
+					this.isHD = false;
+					this.isZStream = true;
+					connect(host, protocol);
+					break;
 			}
 		}
 
 		// Handles a successful connection
-		private function connectedHandler():void {			
+		private function connectedHandler():void {		
+			/* HD Connection Handler */
 			if(this.isHD)
 			{
 				// if disconnected
-				if(!netConnection.connected)
-				{
+				if(!netConnection.connected){
 					netConnection = new NetConnection();
+					netConnection.addEventListener(SecurityErrorEvent.SECURITY_ERROR, netSecurityError);
 					netConnection.connect(null);
 				}
 				_model.debug("Connected to " + netConnection.uri);
@@ -293,6 +294,73 @@ package controller{
 					}					
 				}
 			}
+			/* Zeri Connection Handler */
+			else if(this.isZStream){
+				// if disconnected
+				if(!netConnection.connected){
+					netConnection = new NetConnection();
+					netConnection.addEventListener(SecurityErrorEvent.SECURITY_ERROR, netSecurityError);
+					netConnection.connect(null);
+				}
+				_model.debug("Connected to " + netConnection.uri);
+
+				// not connected to ZStream
+				if(_nsz != null){
+					_nsz.close();
+					_nsz = null;
+				}						
+				
+				_nsz = new ZStream(netConnection);
+				setupZStreamListeners(true);
+				
+				if (_needToSetCuePointMgr) {
+					cuePointMgrSetHandler(null);
+				}
+				
+				volumeChangeHandler(null);
+				
+				var zclipStartTime:Number=NaN;
+				var zclipEndTime:Number=NaN
+				
+				var zplayArgs:Array = [_model.src, zclipStartTime, zclipEndTime];
+				var zname:String = _streamName + (_streamAuthParameters != "" ? "?" + _streamAuthParameters:"");
+				
+				if(!_model.playlistItems){
+					/* single video */
+					if(_model.directPlay){
+						_nsz.play.apply(this, zplayArgs);
+						_view.video.attachNetStream(_nsz);
+					
+						// Notifier function
+						_model.netStreamCreated(_nsz, zname);
+						
+						_nsz.volume = _model.autoStart ? _model.volume:50;
+						_progressTimer.start();
+									
+						if (_model.autoStart) {
+							_model.showPauseButton();
+						}
+					}					
+					_model.directPlay = true;
+				}
+				/*   with playlist (xml/rss) */
+				else{
+					_model.singleItemInXML = (_model.playlistItems.length<2)?true:false;
+					_nsz.play.apply(this, zplayArgs);
+					_view.video.attachNetStream(_nsz);
+				
+					// Notifier function
+					_model.netStreamCreated(_nsz, zname);
+					
+					_nsz.volume = _model.autoStart ? _model.volume:50;
+					_progressTimer.start();
+								
+					if (_model.autoStart) {
+						_model.showPauseButton();
+					}					
+				}				
+			}			
+			/* Akamai Connection Handler */
 			else
 			{
 				if (! _ak || ! _ak.netConnection) {
@@ -310,6 +378,7 @@ package controller{
 					setupListeners(false);
 					_ns = null;
 				}
+				
 				_ns = new AkamaiDynamicNetStream(_ak);
 				setupListeners();
 				
@@ -332,32 +401,52 @@ package controller{
 			/* for hd listeners */
 			function setupHDListeners(add:Boolean=false):void
 			{
-				if (add)
-				{
+				if (add){
 					_nshd.addEventListener(HDEvent.IS_BUFFERING, onBuffer);
-					//_nshd.addEventListener(NetStatusEvent.NET_STATUS, netStreamStatusHandler);
 					_nshd.addEventListener(OvpEvent.DEBUG, debugHDHandler);
 					_nshd.addEventListener(HDEvent.METADATA, onHDMetaData);
 					_nshd.addEventListener(HDEvent.COMPLETE, onComplete);
-					_nshd.addEventListener(HDEvent.COMPLETE, handleHDTransitionComplete);
-					
+					_nshd.addEventListener(HDEvent.ERROR, onHDError);
+					_nshd.addEventListener(HDEvent.STREAM_NOT_FOUND, hdNetStreamNotFound);
+					_nshd.addEventListener(NetStatusEvent.NET_STATUS, hdNetStreamStatus);
 				}
-				else
-				{
+				else{
 					_nshd.removeEventListener(HDEvent.IS_BUFFERING, onBuffer);
-					//_nshd.removeEventListener(NetStatusEvent.NET_STATUS, netStreamStatusHandler);
 					_nshd.removeEventListener(HDEvent.DEBUG, debugHDHandler);
 					_nshd.removeEventListener(HDEvent.METADATA, onHDMetaData);
 					_nshd.removeEventListener(HDEvent.COMPLETE, onComplete);
-					_nshd.removeEventListener(HDEvent.COMPLETE, handleHDTransitionComplete);
+					_nshd.removeEventListener(HDEvent.ERROR, onHDError);
+					_nshd.removeEventListener(HDEvent.STREAM_NOT_FOUND, hdNetStreamNotFound);
+					_nshd.removeEventListener(NetStatusEvent.NET_STATUS, hdNetStreamStatus);
 				}
 			}
 			/* end of hd connection */
 
+			/* for zeri listeners */
+			function setupZStreamListeners(add:Boolean=true):void{
+				if (add){
+					_nsz.addEventListener(OvpEvent.COMPLETE, handleComplete);					
+					_nsz.addEventListener(OvpEvent.METADATA, handleMetaData);
+					_nsz.addEventListener(OvpEvent.IS_BUFFERING, onZStreamBuffer);
+					_nsz.addEventListener(OvpEvent.DEBUG, debugHandler);
+					_nsz.addEventListener(OvpEvent.ERROR, onError);
+					//_nsz.addEventListener(IOErrorEvent.IO_ERROR, zStreamIOError);
+					_nsz.addEventListener(NetStatusEvent.NET_STATUS, hdNetStreamStatus);
+				}
+				else{
+					_nsz.removeEventListener(OvpEvent.COMPLETE, handleComplete);
+					_nsz.removeEventListener(OvpEvent.NETSTREAM_METADATA, handleMetaData);
+					_nsz.removeEventListener(OvpEvent.IS_BUFFERING, onZStreamBuffer);
+					_nsz.removeEventListener(OvpEvent.DEBUG, debugHandler);
+					_nsz.removeEventListener(OvpEvent.ERROR, onError);
+					//_nsz.removeEventListener(IOErrorEvent.IO_ERROR, zStreamIOError);
+					_nsz.removeEventListener(NetStatusEvent.NET_STATUS, hdNetStreamStatus);
+				}
+			} /* end of zeri listener */
+			
 			function setupListeners(add:Boolean=true):void
 			{
-				if (add)
-				{
+				if (add){
 					_ns.addEventListener(NetStatusEvent.NET_STATUS, netStreamStatusHandler);
 					_ns.addEventListener(OvpEvent.DEBUG, debugHandler);
 					_ns.addEventListener(OvpEvent.COMPLETE, handleComplete);
@@ -415,6 +504,7 @@ package controller{
 			//_nshd.seek(0);
 			_model.endOfItem();
 			_nshd.pause();
+			_model.currentIndex = _nshd.currentIndex;
 		}
 		
 		private function handleTransitionComplete(e:OvpEvent):void {
@@ -423,12 +513,6 @@ package controller{
 			}
 		}
 		
-		private function handleHDTransitionComplete(e:HDEvent):void
-		{
-			//if(e.data.code == "NetStream.Play.TransitionComplete")
-			   _model.currentIndex = _nshd.currentIndex;
-		}
-
 		private function adStartHandler(e:Event):void {
 			_adPlaying = true;
 		}
@@ -474,6 +558,7 @@ package controller{
 				_ns.play(name);
 				_ns.volume = _model.autoStart ? _model.volume:50;
 				_progressTimer.start();
+				//_model.seek(20);
 				
 				if (_model.srcType == _model.TYPE_AMD_ONDEMAND || _model.srcType == _model.TYPE_BOSS_STREAM) {
 					_ak.requestStreamLength(_streamName);
@@ -483,8 +568,8 @@ package controller{
 			if (_model.autoStart) {
 				_model.showPauseButton();
 			}
-			
-			if (_needsSeek) {
+
+			if (_needsSeek) {				
 				_needsSeek = false;
 				seekHandler(null);
 			}
@@ -510,25 +595,96 @@ package controller{
 		
 		// Updates the UI elements as the  video plays
 		private function progressHandler(e:TimerEvent):void {
+			/* handle ad message count down */
+			if(_model.isAdContent){
+				var s:Number = Math.floor((_model.time%3600)%60);
+				var d:Number = _model.streamLength - s;
+				d = Math.floor((d%3600)%60)
+				if(d>0){
+					_view.displayAdMessage(true, String(d));
+				}				
+			}
+			else{
+				_view.displayAdMessage(false);
+			}
 			
-			if(!this.isHD)
-			{	
-				if(_model.time > _model.maxPlayingTime)
-				{
-					_model.endOfShow = true;
-					_model.streamLength = 0;
-					_model.seek(0);
-					_model.pause();
-					_view.video.clear();
-					_view.video.visible = false;
-					
+			if(!_model.isAdContent){
+				if(_model.tickerDone){
+					if(_model.time < _model.videoStartPoint && _model.time > 0){
+						if(!_model.videoStartPointTagged){
+							_model.videoStartPointTagged = true;
+							_view.video.clear();
+							_model.pause();
+							_model.seek(_model.videoStartPoint);
+							_view.video.visible = true;
+							_view.replayButton.visible = false;
+							_model.play();
+						}
+					}
+					if(_model.videoEndPoint>0){
+						if(_model.time > _model.videoEndPoint){
+							if(_nshd != null){
+								_model.videoStartPointTagged = false;
+								_model.endOfShow = true;
+								_model.pause();
+								_view.video.clear();
+								netConnection.close();
+								_view.replayButton.visible = true;
+								_nshd.close();
+								_nshd = null;
+							}
+							else if(_nsz != null) {	
+								_model.videoStartPointTagged = false;
+								_model.endOfShow = true;
+								_model.pause();
+								_view.video.clear();
+								netConnection.close();
+								_view.replayButton.visible = true;
+								_nsz.close();
+								_nsz = null;
+								_nshd = null;
+							}
+							else if (_ns != null){
+								_model.videoStartPointTagged = false;
+								_model.endOfShow = true;
+								_model.seek(_model.videoStartPoint);
+								_model.pause();
+								_view.video.clear();
+								_view.replayButton.visible = true;
+								_ak.close();
+								_ns.close();
+								_ns == null;
+							}
+						}
+					}
 				}
-				//trace("time : " + _model.time);
-				if(_nshd is NetStream)
-				{
+				else {
+					//_model.pause();
+					_view.video.visible = false;
+				}				
+			}
+
+			if(!this.isHD && !this.isZStream){	
+//				if(!_model.isAdContent){
+//					if(_model.maxPlayingTime>0){
+//						if(_model.time > _model.maxPlayingTime){
+//							_model.endOfShow = true;
+//							_model.streamLength = 0;
+//							_model.seek(0);
+//							_model.time = 0;
+//							_model.pause();
+//						}
+//					}					
+//				}
+				if(_nshd is NetStream){
 					netConnection.close();
 					_nshd.close();
 				}
+				if(_nsz is ZStream){
+					netConnection.close();
+					_nsz.close();
+				}
+				
 				if (_ns && (_ns is AkamaiDynamicNetStream) && _ns.netConnection && (_ns.netConnection.connected)) {
 					
 					_model.time = _ns.time;
@@ -546,75 +702,97 @@ package controller{
 					_view.invokeResize();
 				}
 			}
-			else
+			else /* HD and Zeri Streaming */
 			{	
-				if(_model.time > _model.maxPlayingTime)
-				{
-					_model.endOfShow = true;
-					_model.streamLength = 0;
-					_model.seek(0);
-					_model.pause();
-					_view.video.clear();
-					_view.video.visible = false;
-				}
-				if(_ns is AkamaiDynamicNetStream)
-				{
+//				if(!_model.isAdContent){
+//					if(_model.maxPlayingTime>0){
+//						if(_model.time > _model.maxPlayingTime){ /* validate playing time */
+//							_model.endOfShow = true;
+//							_model.streamLength = 0;
+//							_model.seek(0);
+//							_model.pause();
+//							_view.video.clear();
+//							_view.video.visible = false;
+//						}
+//					}					
+//				}
+				
+				if(_ns is AkamaiDynamicNetStream){ /* close exeisting akamai connection */
 					_ns.close();
 				}
-				if(_nshd && (_nshd is HDNetStream))
-				{
-					if(_nshd.duration == 0)
-					{
-						_model.streamLength = 0; 
+				
+				if(this.isZStream){/* Zeri Streaming */				
+					if(_nshd is HDNetStream){ /* close hd connection */
+						_nshd.close();
 					}
-					
-					//_model.streamLength = (_model.streamLength<1?_nshd.duration:_model.streamLength);
-					
-					_model.time = _nshd.time;
-					
-					if(_model.maxPlayingTime)
-					{
-						_model.streamLength = (_nshd.duration > _model.maxPlayingTime ? _model.maxPlayingTime : _nshd.duration);
+					if(_nsz && (_nsz is ZStream)){
+						if(_nsz.duration == 0){
+							_model.streamLength = 0; 
+						}
+						
+						_model.streamLength = (_model.streamLength<1?_nsz.duration:_model.streamLength);
+						_model.currentStreamBitrate = _nsz.getBitrateAtQualitylevel(_nsz.currentIndex);
+						_model.bufferLength = _nsz.maximumBitrateAllowed;
+						_model.time = _nsz.time;
+						_view.invokeResize();
 					}
-					else
-					{
-						_model.streamLength = _nshd.duration;
+				}/* --- Zeri Streaming */				
+							
+				if(this.isHD){ /* HD Streaming */	
+					if(_nsz is ZStream){ /* close existing zeri connection */
+						_nsz.close();						
 					}
-			
-	//				_model.bufferPercentage = _nshd.bufferLength * 100 / _nshd.bufferTime;
-	//				_model.bytesLoaded = _nshd.bytesLoaded;
-	//				_model.bytesTotal = _nshd.bytesTotal;
-	//				_model.bufferLength = _nshd.bufferLength;
-	//				_model.maxBandwidth = Math.round(_nshd.estimatedMaxbandwidth * 8 / 1024);
-	//				_model.currentStreamBitrate = Math.round(_nshd.info.playbackBytesPerSecond * 8 / 1024);
-					_view.invokeResize();
-					// pending ----------
-				}
-			}
-		}
+					if(_nshd && (_nshd is HDNetStream)){
+						if(_nshd.duration == 0){
+							_model.streamLength = 0; 
+						}
+						
+						_model.streamLength = (_model.streamLength<1?_nshd.duration:_model.streamLength);
+						
+						_model.time = _nshd.time;
+						_view.invokeResize();
+					}					
+				} /* HD Streaming */				
+			} /* -- HD and Zeri Streaming */
+		} /* -- progressHandler */
 		
-		private function onBuffer(event:HDEvent):void
+		
+		private function onBuffer(event:HDEvent):void /* HD Buffering */
 		{
-			if(event.data)
-			{
+			if(event.data){
 				pauseHandler(null);
-//				trace("BUFFERING ========================================================================= >>>>>>>>> ");
 				_model.isBuffering = true;
-				if(_model.playingState)
-				{
+				if(_model.playingState){
 					_model.playStart();
 				}
-				else
-				{
+				else{
 					_model.pause();
 				}
 			}
-			else
-			{
+			else{
 				_view.showVideo();
 				_model.bufferFull();
 			}
-		}
+		} /* -- HD Buffering */
+		
+		private function onZStreamBuffer(event:OvpEvent):void{	/* Zeri Buffering */		
+			if(event.data as Boolean){
+				_view.showVideo();
+				_model.bufferFull();
+			}
+			else
+			{
+				pauseHandler(null);
+				_model.isBuffering = true;
+				if(_model.playingState){
+					_model.playStart();
+				}
+				else{
+					_model.pause();
+				}
+			}
+		} /* -- Seri Buffering */
+		
 
 		// Handles netstream status events. We trap the buffer full event
 		// in order to start updating our slider again, to prevent the
@@ -658,12 +836,42 @@ package controller{
 				case "NetStream.Play.Transition" :
 					_model.debug("Transition to new stream starting ...");
 					break;
-
 			}
 		}
 
-		// Handles NetConnection status events. 
-		private function netStatusHandler(e:NetStatusEvent):void {
+		/* HD NetStream Status Handler */
+		private function hdNetStreamNotFound(e:HDEvent):void {
+			_model.debug(e.toString());
+			_model.showError("STREAM NOT FOUND!!!");
+		}
+
+		private function hdNetStreamStatus(e:NetStatusEvent):void {
+			_model.debug(e.info.code);
+			switch(e.info.code){
+				case "NetStream.Buffer.Empty":
+					//_view.displaySpinner(true);
+				break;
+				case "NetStream.Seek.Notify":
+					//_view.displaySpinner(true);
+				break;
+				case "NetStream.Play.Start":
+					//_view.displaySpinner(false);
+					if(!_model.tickerDone){
+						_model.tickerDone = true;
+						_model.pause();
+						_model.time=_model.videoStartPoint;
+						_model.play();
+					}
+				break;
+				case "NetStream.Buffer.Full":
+				break
+				default:
+					//_view.displaySpinner(false);
+				break;
+			}
+		} /* --- hdNetStreamStatus */				
+				
+		private function netStatusHandler(e:NetStatusEvent):void {  // Handles NetConnection status events. 
 			_model.debug(e.info.code);
 			switch (e.info.code) {
 				case "NetConnection.Connect.IdleTimeOut" :
@@ -678,27 +886,27 @@ package controller{
 					connectedHandler();
 					break;
 			}
-		}
-		// Handles metadata that is released by the stream
-		private function onHDMetaData(event:HDEvent):void
-		{
+		} /* -- netStatasHandler */
+		
+		private function onHDMetaData(event:HDEvent):void {  // Handles HD metadata that is released by the stream
 			if (_view != null && _view.stage != null && _view.stage.displayState != StageDisplayState.FULL_SCREEN) {
 				_view.scaleVideo(Number(event.data.width), Number(event.data.height));
 			}
 		}		
-		private function handleMetaData(e:OvpEvent):void {
+		private function handleMetaData(e:OvpEvent):void { // Handles akamai metadata that is released by the stream
 			if (_view != null && _view.stage != null && _view.stage.displayState != StageDisplayState.FULL_SCREEN) {
 				_view.scaleVideo(Number(e.data["width"]), Number(e.data["height"]));
 			}
 		}
 
 		private function volumeChangeHandler(e:Event):void {
-			if(this.isHD)
-			{
+			if(this.isHD){ /* HD Streaming */
 				_nshd.soundTransform = new SoundTransform(_model.volume);
 			}
-			else
-			{
+			else if(this.isZStream){  /* Zeri Streaming */
+				_nsz.soundTransform = new SoundTransform(_model.volume);
+			}
+			else{
 				_ns.soundTransform = new SoundTransform(_model.volume);
 			}
 		}
@@ -711,10 +919,8 @@ package controller{
 		private function toggleSwitchHandler(e:Event):void {
 			_ns.useManualSwitchMode(!_model.useAutoDynamicSwitching);
 		}
-
-
-		// Handles any errors dispatched by the connection class.
-		private function onError(e:OvpEvent):void {
+		
+		private function onError(e:OvpEvent):void {  // Handles any errors dispatched by the connection class.
 			switch (e.data.errorNumber) {
 				case 6 :
 					_successfulPort = "any";
@@ -742,9 +948,9 @@ package controller{
 
 			}
 		}
-		// HD Error
+		
 		// Handles any errors dispatched by the connection class.
-		private function onHDError(e:HDEvent):void {
+		private function onHDError(e:HDEvent):void {  // HD Error Handler
 			switch (e.data.errorNumber) {
 				case 1 :
 					_model.showError(_model.ERROR_STREAM_NOT_FOUND);
@@ -768,49 +974,88 @@ package controller{
 					_model.showError(_model.ERROR_RTMP_FALLBACK);
 					break;
 			}
+		} /* onHDError */
+
+		private function netSecurityError(e:SecurityErrorEvent):void{
+			_model.showError("Net Security Problem!!!");
+			_model.debug(e.text);
 		}
-		
+
 		// Handle play events
 		private function playHandler(e:Event):void {
 			if (_needsRestart) {
 				_needsRestart = false;
-				newSourceHandler(null);
+				if(this.isHD || this.isZStream){
+					if(!netConnection.connected){
+						this.connect(_host, _protocol);
+						_model.time = _model.videoStartPoint;
+						_model.endOfShow = false;
+						_model.videoStartPointTagged = false;
+						_model.play();
+					}
+				}
+				else {
+					newSourceHandler(null);
+				}
 			} else {
-				
-				if(this.isHD) 
+				if(this.isHD){
+					if(!netConnection.connected){
+						this.connect(_host, _protocol);
+						_model.time = _model.videoStartPoint;
+						_model.endOfShow = false;
+						_model.play();
+					}
 					_nshd.resume();
-				else 
+				}
+				else if(this.isZStream){
+					if(!netConnection.connected){
+						this.connect(_host, _protocol);
+						_model.time = _model.videoStartPoint;
+						_model.endOfShow = false;
+						_model.play();
+					}
+					_nsz.resume()
+				}
+				else {
+					if(!_ak.connected){
+						this.connect(_host, _protocol);
+						this.connectedHandler();
+						_model.time = _model.videoStartPoint;
+						_model.endOfShow = false;
+						_model.play();
+					}
 					_ns.resume();
+				}
 			}
 		}
-		// Handle pause events
-		private function pauseHandler(e:Event):void {
-			if(this.isHD)
-			{
-				_nshd.pause();
+		
+		private function pauseHandler(e:Event):void { // Handle pause events
+			if(this.isHD){
+				if(netConnection.connected)
+					_nshd.pause();
 			}
-			else
-			{
-				_ns.pause();
+			else if(this.isZStream){
+				if(netConnection.connected)
+					_nsz.pause();
+			}
+			else {
+				if(_ns)
+					_ns.pause();
 			}
 		}
-		// Handle seek events
-		private function seekHandler(e:Event):void {
+		
+		private function seekHandler(e:Event):void {  // Handle seek events
 			if (_needsRestart) {
 				_needsRestart = false;
 				_needsSeek = true;
 				newSourceHandler(null);
 			} else {
-				
-				if(this.isHD)
-				{
-//					_model.seekTarget = (_model.seekTarget=""?0:_model.seekTarget);
+				if(this.isHD && _nshd != null)
 					_nshd.seek(_model.seekTarget);
-				}
-				else
-				{
+				else if(this.isZStream && _nsz != null)
+					_nsz.seek(_model.seekTarget);
+				else if(_ns != null)
 					_ns.seek(_model.seekTarget);
-				}				
 			}
 		}
 		
@@ -873,15 +1118,15 @@ package controller{
 		private function cuePointMgrSetHandler(e:Event):void {
 			_needToSetCuePointMgr = true;
 
-			if(this.isHD)
-			{
+			if(this.isHD){
 //				if (_nshd && _model.cuePointManager) {
 //					_model.cuePointManager.netStream = netStream;
 //					_needToSetCuePointMgr = false;
 //				}											
 			}
-			else
-			{
+			else if(this.isZStream){
+			}
+			else{
 				if (_ns && _model.cuePointManager) {
 					_model.cuePointManager.netStream = _ns;
 					_needToSetCuePointMgr = false;
@@ -889,19 +1134,18 @@ package controller{
 			}
 		}
 
-		private function connect(hostName:String, requestedProtocol:String = "any"):void {	
-			if(this.isHD)
-			{	
+		private function connect(hostName:String, requestedProtocol:String = "any"):void {	/* connection handling */
+			_host = hostName;
+			_protocol = requestedProtocol;
+			if(this.isHD){	/* HD Connection */
 				netConnection = new NetConnection();
 				if (((hostName + _connectionAuthParameters) == _lastConnectionKey) && !_needsRestart && netConnection.connected ) {
 					// rejoice, we can reuse the existing connection;
 					connectedHandler();				
 				}
-				else
-				{
-					
+				else{					
 					netConnection.addEventListener(NetStatusEvent.NET_STATUS, netStatusHandler);
-					netConnection.addEventListener(HDEvent.ERROR, onHDError);
+					netConnection.addEventListener(SecurityErrorEvent.SECURITY_ERROR, netSecurityError);
 					if (! _model.autoStart) {
 						_view.hideVideo();
 					}
@@ -910,9 +1154,30 @@ package controller{
 					netConnection.connect(null);
 					_lastConnectionKey = hostName + _connectionAuthParameters;
 				}
-			}
-			else
-			{					
+			} /* -- HD Connection */
+			else if(this.isZStream){ /* Zeri Connection */
+				netConnection = new NetConnection();
+				if (((hostName + _connectionAuthParameters) == _lastConnectionKey) && !_needsRestart && netConnection.connected ) {
+					// rejoice, we can reuse the existing connection;
+					connectedHandler();				
+				}
+				else{
+					netConnection.connect(null);
+					netConnection.addEventListener(NetStatusEvent.NET_STATUS, hdNetStreamStatus);				
+					netConnection.addEventListener(SecurityErrorEvent.SECURITY_ERROR, netSecurityError);
+					
+					this.connectedHandler();
+					//netConnection.addEventListener(OvpEvent.ERROR, onError);
+					if (! _model.autoStart) {
+						_view.hideVideo();
+					}
+					// Notifier function
+					_model.connectionCreated(netConnection, hostName);
+					netConnection.connect(null);
+					_lastConnectionKey = hostName + _connectionAuthParameters;
+				}				
+			} /* -- Zeri Connection */
+			else {	/* Akamai Connection */
 				_ak = new AkamaiConnection();
 				if (((hostName + _connectionAuthParameters) == _lastConnectionKey) && !_needsRestart && _ak.connected ) {
 					// rejoice, we can reuse the existing connection;
@@ -939,7 +1204,7 @@ package controller{
 					_ak.connect(hostName);
 					_lastConnectionKey = hostName + _connectionAuthParameters;
 				}
-			} // end of this.isHD
-		}
-	}
-}
+			} /* -- Akamai Connection */
+		} /* -- Connection Handling */
+	} /* -- class VideoController */
+} /* -- package */
