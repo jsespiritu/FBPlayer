@@ -106,12 +106,12 @@ package model {
 		private var _cuePointMgr:OvpCuePointManager;
 		
 		// added by jewrin s. espiritu
-		public var _overideSrc:String = "";
-		public var currentPixelSetting:String;
 		private var _forcePlayIndex:String;
 		private var _items:Array 
 		private var _tagPlayIndex:Boolean = false;
 		
+		public var _overideSrc:String = "";
+		public var currentPixelSetting:String;		
 		public var isPlayable:Boolean;
 		public var isLogin:Boolean;
 		public var refer:String;
@@ -127,15 +127,32 @@ package model {
 		public var directPlay:Boolean = false;
 		public var singleItemInXML:Boolean;
 		public var playingState:Boolean = true;
-		public var maxPlayingTime:Number = 0;
+		public var maxPlayingTime:Number = 60;
 		public var playCount:Number = 0;
 		public var isAdContent:Boolean = false;
 		public var endOfShow:Boolean = false;
 		public var videoStartPointTagged:Boolean = false;
-		public var videoStartPoint:Number = 30;
-		public var videoEndPoint:Number = 35;
+		public var videoStartPoint:Number = 0;
+		public var videoEndPoint:Number = 60;
 		public var isSkipDone:Boolean = false;
-		
+		public var tokenParam:String;
+
+		public const EVENT_TOGGLE_PIXEL:String = "EVENT_TOGGLE_PIXEL";
+		public const EVENT_SHOW_PIXEL_SELECTION:String = "EVENT_SHOW_PIXEL_SELECTION";
+		public const EVENT_HIDE_PIXEL_SELECTION:String = "EVENT_HIDE_PIXEL_SELECTION";
+		public const EVENT_HIDE_VOLUMEBAR:String = "EVENT_HIDE_VOLUMEBAR";
+		public const EVENT_TOGGLE_GROUPLIST:String = "EVENT_TOGGLE_GROUPLIST";
+		public const EVENT_SHOW_GROUPLIST_SELECTION:String = "EVENT_SHOW_GROUPLIST_SELECTION";
+		public const EVENT_HIDE_GROUPLIST_SELECTION:String = "EVENT_HIDE_GROUPLIST_SELECTION";
+		public const EVENT_TOGGLE_CAPTION:String = "EVENT_TOGGLE_CAPTION";
+		public const EVENT_SHOW_CAPTION:String = "EVENT_SHOW_CAPTION";
+		public const EVENT_HIDE_CAPTION:String = "EVENT_HIDE_CAPTION";
+		public const EVENT_CLICK_POPUP:String = "MouseEvent.CLICK";
+		public const EVENT_LOGIN:String = "EVENT_LOGIN";
+		public const VIDEO_240P:String = "240";
+		public const VIDEO_360P:String = "360";
+		public const VIDEO_480P:String = "480";
+
 		// -------- end --------------
 		
 		//Declare private constants
@@ -145,7 +162,7 @@ package model {
 		private const DEFAULT_CONTROLBAR_FONT_COLOR:String = "CCCCCC";
 		private const DEFAULT_THEMECOLOR:String = "CCCCCC";
 		private const DEFAULT_ISOVERLAY:Boolean = false;
-		private const DEFAULT_SRC:String = "";
+		private const DEFAULT_SRC:String = "http://localhost";
 		private const PLAYLIST_WIDTH:Number = 290;
 		//private const CONTROLBAR_HEIGHT:Number = 35;
 		private const CONTROLBAR_HEIGHT:Number = 70;
@@ -176,23 +193,6 @@ package model {
 		public const EVENT_DISABLE_CONTROLS:String = "EVENT_DISABLE_CONTROLS";
 		public const EVENT_TOGGLE_FULLSCREEN:String = "EVENT_TOGGLE_FULLSCREEN";
 		public const EVENT_TOGGLE_LINK:String = "EVENT_TOGGLE_LINK";
-		// edded by jerwin s. espiritu
-		public const EVENT_TOGGLE_PIXEL:String = "EVENT_TOGGLE_PIXEL";
-		public const EVENT_SHOW_PIXEL_SELECTION:String = "EVENT_SHOW_PIXEL_SELECTION";
-		public const EVENT_HIDE_PIXEL_SELECTION:String = "EVENT_HIDE_PIXEL_SELECTION";
-		public const EVENT_HIDE_VOLUMEBAR:String = "EVENT_HIDE_VOLUMEBAR";
-		public const EVENT_TOGGLE_GROUPLIST:String = "EVENT_TOGGLE_GROUPLIST";
-		public const EVENT_SHOW_GROUPLIST_SELECTION:String = "EVENT_SHOW_GROUPLIST_SELECTION";
-		public const EVENT_HIDE_GROUPLIST_SELECTION:String = "EVENT_HIDE_GROUPLIST_SELECTION";
-		public const EVENT_TOGGLE_CAPTION:String = "EVENT_TOGGLE_CAPTION";
-		public const EVENT_SHOW_CAPTION:String = "EVENT_SHOW_CAPTION";
-		public const EVENT_HIDE_CAPTION:String = "EVENT_HIDE_CAPTION";
-		public const EVENT_CLICK_POPUP:String = "MouseEvent.CLICK";
-		public const EVENT_LOGIN:String = "EVENT_LOGIN";
-		public const VIDEO_240P:String = "240";
-		public const VIDEO_360P:String = "360";
-		public const VIDEO_480P:String = "480";
-		// --------------- end
 		public const EVENT_HIDE_FULLSCREEN:String = "EVENT_HIDE_FULLSCREEN";
 		public const EVENT_SHOW_PAUSE:String = "EVENT_SHOW_PAUSE";
 		public const EVENT_TOGGLE_DEBUG:String = "EVENT_TOGGLE_DEBUG";
@@ -254,27 +254,30 @@ package model {
 		public const SCALE_MODE_NATIVE:String = "SCALE_MODE_NATIVE";
 		public const SCALE_MODE_NATIVE_OR_SMALLER:String = "SCALE_MODE_NATIVE_OR_SMALLER";		
 
-		public function Model(flashvars:Object, url:String = ""):void {
-			init(flashvars, url);
+		public function Model(flashvars:Object, url:String = "", token:String = ""):void {
+			init(flashvars, url, token);
 		}
-		private function init(flashvars:Object, url:String):void {
+		private function init(flashvars:Object, url:String, token:String = ""):void {
 			//flashvars.src="http://184.106.129.173/sg/ff/AB08252010240PS2DRff.f4v";
 			//flashvars.src="http://products.edgeboss.net/download/products/content/demo/video/oomt/big_buck_bunny_700k.flv";
 			//flashvars.src="http://mediapm.edgesuite.net/ovp/content/demo/smil/elephants_dream.smil";
 			//flashvars.src="http://localhost/TFCHDPlayerBeta/akamai/grouplist1.xml";
-			//flashvars.src="http://localhost/TFCHDPlayerBeta/akamai/playlist2.xml";
-			//flashvars.src="http://o1-f.akamaihd.net/imortal/20101110/20101110-imortal-,300000,500000,800000,1000000,1300000,1500000,.mp4.csmil";
+			//flashvars.src="http://o1-f.akamaihd.net/z/freeview/magingsinokaman/maginsinokaman(johnlloyd)-,300000,500000,800000,1000000,1300000,1500000,.mp4.csmil/manifest.f4m";
 			//flashvars.src="http://localhost/test/fb_playlist.xml";
+			//flashvars.src="http://localhost/videos/content/ad.flv";
 			//flashvars.src="http://tfctvhdflashsg-f.akamaihd.net/z/mp4/20110409-mmk1-,500,800,1000,1300,1500,.mp4.csmil/manifest.f4m";
 			//flashvars.src="http://mediapm.edgesuite.net/edgeflash/public/debug/assets/smil/nelly2.smil";
 			//flashvars.src="http://tfctvprogflashsg.edgesuite.net/smil/AB08242010.smil";
-			//flashvars.src="http://o1-f.akamaihd.net/imortal/20101110/20101110-imortal,300000,500000,800000,1000000,1300000,1500000,.mp4";
+			//flashvars.src="http://o1-f.akamaihd.net/z/movietrailers/onemorechance/onemorechance-,300000,500000,800000,1000000,1300000,1500000,.mp4.csmil/manifest.f4m";
+			//flashvars.src="http://o1-f.akamaihd.net/z/freeview/magingsinokaman/maginsinokaman(johnlloyd)-,300000,500000,800000,1000000,1300000,1500000,.mp4.csmil/manifest.f4m";
 			//flashvars.src="http://localhost/videos/content/20100920-alyna4_sol-240.flv";
 			//flashvars.src="http://localhost/test/fb_playlist.xml";
+			tokenParam = token;
 			flashvars.mode = "overlay";
 			flashvars.isPlayable = "1";
 			flashvars.isLogin = "1";
-			//flashvars.allowPlayingTime = "15";
+			//flashvars.startTime = "5";
+			//flashvars.endTime = "15";
 			//flashvars.maxPlayingTime = "0";
 			//flashvars.trackNo = "8";
 			//flashvars.timeInterval = "10";
@@ -329,8 +332,8 @@ package model {
 			commentWidth= flashvars.commentWidth == undefined? 600 : int(flashvars.commentWidth.toString());
 			timeInterval = flashvars.timeInterval == undefined ? timeInterval:flashvars.timeInterval;
 			maxPlayingTime = flashvars.allowPlayingTime == undefined ? maxPlayingTime : Number(flashvars.allowPlayingTime.toString());
-			videoStartPoint = flashvars.startPoint == undefined ? videoStartPoint : Number(flashvars.startPoint.toString());
-			videoEndPoint = flashvars.endPoint == undefined ? videoEndPoint : Number(flashvars.endPoint.toString());
+			videoStartPoint = flashvars.startTime == undefined ? videoStartPoint : Number(flashvars.startTime.toString());
+			videoEndPoint = flashvars.endTime == undefined ? videoEndPoint : Number(flashvars.endTime.toString());
 			// ---- end
 			//
 			// call login modal
@@ -360,7 +363,6 @@ package model {
 			_autoDynamicSwitching = true;
 			_isMultiBitrate = false;
 		}
-		
 		
 		public function set stage(value:Stage):void{
 			_stage = value;			

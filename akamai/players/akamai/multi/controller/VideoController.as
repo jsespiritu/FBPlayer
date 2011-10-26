@@ -55,6 +55,8 @@ package controller{
 	import com.akamai.hd.HDEvent;
 	import com.akamai.net.f4f.ZStream;	
 	import com.akamai.hdcore.samples.utility.Utils;		
+	import org.openvideoplayer.components.ui.controlbar.ControlBar;
+	import view.ControlbarView;
 	
 	/**
 	 * Akamai Multi Player - controller working in conjunction with the VideoView
@@ -63,6 +65,7 @@ package controller{
 
 		private var _model:Model;
 		private var _view:VideoView;
+		private var _controlBarView; // controlbar view
 		private var _rss:AkamaiMediaRSS;
 		private var _boss:AkamaiBOSSParser;
 		private var _SMILparser:DynamicSmilParser;
@@ -98,6 +101,7 @@ package controller{
 		private var _host:String;
 		private var _protocol:String;
 		
+		var _triggerCounter:Number = 0;
 		// -------------------
 
 		public function VideoController(model:Model,view:VideoView):void {
@@ -106,6 +110,7 @@ package controller{
 			_adPlaying = false;
 			_startPlayPending = false;
 			_needToSetCuePointMgr = false;
+			_controlBarView = new ControlbarView(_model);
 			initializeChildren();
 		}
 		private function initializeChildren():void {
@@ -189,7 +194,7 @@ package controller{
 					connect(null);
 					break;
 				case _model.TYPE_AMD_PROGRESSIVE :
-					this.isHD = false;
+					this.isHD = true;
 					this.isZStream = false;
 					_streamName = _model.src;
 					connect(null);
@@ -213,6 +218,7 @@ package controller{
 					this.isHD = false;
 					this.isZStream = true;
 					connect(host, protocol);
+					_view.hideVideo();
 					break;
 			}
 		}
@@ -321,8 +327,8 @@ package controller{
 				
 				var zclipStartTime:Number=NaN;
 				var zclipEndTime:Number=NaN
-				
-				var zplayArgs:Array = [_model.src, zclipStartTime, zclipEndTime];
+				var content_with_token:String = _model.src + _model.tokenParam;
+				var zplayArgs:Array = [content_with_token, zclipStartTime, zclipEndTime];
 				var zname:String = _streamName + (_streamAuthParameters != "" ? "?" + _streamAuthParameters:"");
 				
 				if(!_model.playlistItems){
@@ -330,7 +336,7 @@ package controller{
 					if(_model.directPlay){
 						_nsz.play.apply(this, zplayArgs);
 						_view.video.attachNetStream(_nsz);
-					
+						
 						// Notifier function
 						_model.netStreamCreated(_nsz, zname);
 						
@@ -340,6 +346,7 @@ package controller{
 						if (_model.autoStart) {
 							_model.showPauseButton();
 						}
+						_view.hideVideo();
 					}					
 					_model.directPlay = true;
 				}
@@ -354,11 +361,11 @@ package controller{
 					
 					_nsz.volume = _model.autoStart ? _model.volume:50;
 					_progressTimer.start();
-								
+					_view.hideVideo();
 					if (_model.autoStart) {
 						_model.showPauseButton();
 					}					
-				}				
+				}
 			}			
 			/* Akamai Connection Handler */
 			else
@@ -579,12 +586,10 @@ package controller{
 		private function handleStreamLength(e:OvpEvent):void {
 			
 			var totalStreamLength:Number = Number(e.data.streamLength);
-			if(_model.maxPlayingTime)
-			{
+			if(_model.maxPlayingTime){
 				_model.streamLength = (totalStreamLength > _model.maxPlayingTime ? _model.maxPlayingTime : totalStreamLength);
 			}
-			else
-			{
+			else{
 				_model.streamLength = totalStreamLength;
 			}
 		}
@@ -607,61 +612,130 @@ package controller{
 			else{
 				_view.displayAdMessage(false);
 			}
-			
-			if(!_model.isAdContent){
-				if(_model.tickerDone){
-					if(_model.time < _model.videoStartPoint && _model.time > 0){
-						if(!_model.videoStartPointTagged){
-							_model.videoStartPointTagged = true;
-							_view.video.clear();
-							_model.pause();
-							_model.seek(_model.videoStartPoint);
-							_view.video.visible = true;
-							_view.replayButton.visible = false;
-							_model.play();
+			if(!_model.isAdContent){				
+				if(_model.videoStartPoint < _model.streamLength && _model.videoStartPoint!=0){
+					if(_model.videoStartPoint < 6){
+						if(int(_model.time) >= (_model.videoStartPoint + _model.videoStartPoint)-1){						
+							if(_nsz != null){
+								_nsz.volume = .5;
+							}
+							if(_nshd != null){
+								_nshd.volume = .5;
+							}							
+						}
+						else{
+							if(_nsz != null){
+								_nsz.volume = 0;
+							}							
+							if(_nshd != null){
+								_nshd.volume = 0;
+							}							
 						}
 					}
-					if(_model.videoEndPoint>0){
-						if(_model.time > _model.videoEndPoint){
+					else{
+						if(int(_model.time) >= _model.videoStartPoint){						
+							if(_nsz != null){
+								_nsz.volume = .5;
+							}
 							if(_nshd != null){
-								_model.videoStartPointTagged = false;
-								_model.endOfShow = true;
-								_model.pause();
-								_view.video.clear();
-								netConnection.close();
-								_view.replayButton.visible = true;
-								_nshd.close();
-								_nshd = null;
+								_nshd.volume = .5;
 							}
-							else if(_nsz != null) {	
-								_model.videoStartPointTagged = false;
-								_model.endOfShow = true;
-								_model.pause();
-								_view.video.clear();
-								netConnection.close();
-								_view.replayButton.visible = true;
-								_nsz.close();
-								_nsz = null;
-								_nshd = null;
+						}
+						else{
+							if(_nsz != null){
+								_nsz.volume = 0;
+							}							
+							if(_nshd != null){
+								_nshd.volume = 0;
 							}
-							else if (_ns != null){
-								_model.videoStartPointTagged = false;
-								_model.endOfShow = true;
-								_model.seek(_model.videoStartPoint);
+						}						
+					}
+					if(_model.tickerDone && _model.videoStartPoint > 0){
+						if(_model.time < _model.videoStartPoint && _model.time > 0){							
+							if(!_model.videoStartPointTagged){
+								_model.videoStartPointTagged = true;
 								_model.pause();
-								_view.video.clear();
-								_view.replayButton.visible = true;
-								_ak.close();
-								_ns.close();
-								_ns == null;
+								_model.seek(_model.videoStartPoint);								
+								_view.replayButton.visible = false;
+								_model.play();
 							}
+						}
+						else{
+							_view.hideVideo();
+						}
+						if(int(_model.time) < _model.videoStartPoint){
+							_view.hideVideo();
+						}
+						else{
+							_view.showVideo();
+						}
+						if(_model.videoEndPoint>0){
+							if(int(_model.time) > _model.videoEndPoint + (_model.videoStartPoint < 6 ? _model.videoStartPoint -1 : 0)){
+								_controlBarView._overlayPauseButton.visible = false;
+								if(_nsz != null){
+									_nsz.volume = 0;
+								}
+								if(_nshd != null){									
+									_model.videoStartPointTagged = false;
+									_model.endOfShow = true;									
+									_model.pause();
+									_view.video.clear();
+									netConnection.close();
+									_view.replayButton.visible = true;
+									_nshd.close();
+									_nshd = null;
+								}
+								else if(_nsz != null) {	
+									_model.videoStartPointTagged = false;
+									_model.endOfShow = true;
+									_model.pause();
+									netConnection.close();
+									_nsz.close();
+									_nsz = null;
+									_nshd = null;										
+									_view.video.clear();
+									_view.replayButton.visible = true;
+								}
+								else if (_ns != null){
+									_model.videoStartPointTagged = false;
+									_model.endOfShow = true;
+									_model.seek(_model.videoStartPoint);
+									_model.pause();
+									_view.video.clear();
+									_view.replayButton.visible = true;
+									_ak.close();
+									_ns.close();
+									_ns == null;
+								}
+							} /* _model.time > _model.videoEndPoint */
+						} /* _model.videoEndPoint>0 */
+					} /* if videoStartPoint has a value and not more than to the total duration of video  (_model.tickerDone && _model.videoStartPoint > 0)*/
+					else{
+						_view.hideVideo();
+					}
+					
+				} /* by default video runs 60 sec (_model.videoStartPoint < _model.streamLength && _model.videoStartPoint!=0) */
+				else {
+					if(_model.time > _model.maxPlayingTime){						
+						_model.endOfShow = true;
+						_model.streamLength = 0;
+						_model.seek(0);
+						_model.time = 0;
+						_model.pause();
+						_view.video.visible = false;
+						_view.replayButton.visible = true;
+						_triggerCounter = 0;
+					}
+					else{
+						if(_triggerCounter < 3){
+							_model.playStart();
+							_triggerCounter++;
 						}
 					}
 				}
-				else {
-					//_model.pause();
-					_view.video.visible = false;
-				}				
+			}
+			else{
+				_view.showVideo();
 			}
 
 			if(!this.isHD && !this.isZStream){	
@@ -770,14 +844,15 @@ package controller{
 				}
 			}
 			else{
-				_view.showVideo();
+				//_view.showVideo();
 				_model.bufferFull();
 			}
 		} /* -- HD Buffering */
 		
 		private function onZStreamBuffer(event:OvpEvent):void{	/* Zeri Buffering */		
-			if(event.data as Boolean){
-				_view.showVideo();
+			if(event.data as Boolean){ // use this for debugging
+			//if(!event.data as Boolean){ // use this for production
+				//_view.showVideo();
 				_model.bufferFull();
 			}
 			else
@@ -791,7 +866,7 @@ package controller{
 					_model.pause();
 				}
 			}
-		} /* -- Seri Buffering */
+		} /* -- Zeri Buffering */
 		
 
 		// Handles netstream status events. We trap the buffer full event
@@ -815,7 +890,7 @@ package controller{
 						_ak.close();							
 						_model.closeAfterPreview();
 					}
-					_view.showVideo();
+					//_view.showVideo();
 					_model.bufferFull();
 
 					break;
@@ -997,7 +1072,8 @@ package controller{
 				else {
 					newSourceHandler(null);
 				}
-			} else {
+			} 
+			else {
 				if(this.isHD){
 					if(!netConnection.connected){
 						this.connect(_host, _protocol);
@@ -1156,6 +1232,7 @@ package controller{
 				}
 			} /* -- HD Connection */
 			else if(this.isZStream){ /* Zeri Connection */
+				_view.hideVideo();
 				netConnection = new NetConnection();
 				if (((hostName + _connectionAuthParameters) == _lastConnectionKey) && !_needsRestart && netConnection.connected ) {
 					// rejoice, we can reuse the existing connection;

@@ -27,8 +27,7 @@
 // (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE 
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
-package view {
-	
+package view {	
 	import flash.display.*;
 	import flash.events.*;
 	import flash.geom.*;
@@ -65,6 +64,9 @@ package view {
 		
 		public var replayButton:ReplayButton;
 		
+		// busy animation
+		private var _bufferAnimation:BufferAnimation;
+		
 		public function VideoView(model:Model):void {
 			_model = model;
 			this.callLoginModal(); // added by jerwin
@@ -83,6 +85,9 @@ package view {
 		public function hideVideo():void {
 			_video.visible = false;
 		}
+		public function displaySpinner(spinner:Boolean = false):void{
+			_bufferAnimation.visible = spinner;
+		}		
 		private function addedToStage(event:Event):void {
 			
 			stage.addEventListener( FullScreenEvent.FULL_SCREEN , exitFullScreen );
@@ -95,7 +100,10 @@ package view {
 			}
 			else {
 				stage.addChild(_adMessageTextFieldBG);
+				stage.addChild(_bufferAnimation);
 				stage.addChild(_adMessageTextField);				
+				_bufferAnimation.x=stage.width/2
+				_bufferAnimation.y=stage.height/2;
 			}
 		}
 		
@@ -145,8 +153,8 @@ package view {
 			replayButton.addEventListener(MouseEvent.CLICK,replay);
 			replayButton.scaleX = 3;
 			replayButton.scaleY = 3;
-//			_replayButton.x = (_model.width-_replayButton.width) / 2;
-//			_replayButton.y = ((_model.width - _replayButton.height )/2) - 100;
+			replayButton.x = _model.width / 2;
+			replayButton.y = _model.height / 2;
 			//this.resize(null);
 			
 			replayButton.buttonMode = true;
@@ -181,10 +189,15 @@ package view {
 			addChild(_adMessageTextField);			
 			_adMessageTextField.visible = false;
 			
+			_bufferAnimation = new BufferAnimation();
+			addChild(_bufferAnimation);
+			_bufferAnimation.visible = false;
+			
 			if ( !_model.autoStart )
 			{
 				if(!_model.isPlayable)
 				{
+					_bufferAnimation.visible = false;
 					_buyButton = new BuyButton();					
 					var buttonName:TextField = new TextField();
 					buttonName.embedFonts = true;
@@ -313,9 +326,11 @@ package view {
 			if(!_model.isPlayable)
 			{
 				_buyButton.x = ((_availableVideoWidth - _buyButton.width ) /2);
-				_buyButton.y = ((_availableVideoHeight - _buyButton.height ) /2);				
+				_buyButton.y = ((_availableVideoHeight - _buyButton.height ) /2);			
+				_bufferAnimation.visible = false;
 			}
-				
+			_bufferAnimation.x = ((_availableVideoWidth - _bufferAnimation.width ) /2) + 30;
+			_bufferAnimation.y = ((_availableVideoHeight - _bufferAnimation.height ) /2) + 20;							
 		}
 		private function resize(e:Event):void  {
 			//_availableVideoWidth = _model.width - (_model.isOverlay ? 0:(_model.hasPlaylist && _model.playlistVisible)? _model.playlistWidth+6:0) - 6;
@@ -342,7 +357,7 @@ package view {
 				removeChild( _defaultImage );
 				_defaultImage = null;
 				
-				removeChild( _playButton );
+				//removeChild( _playButton );
 			}
 		}
 		private function playMouseOver(e:MouseEvent):void {

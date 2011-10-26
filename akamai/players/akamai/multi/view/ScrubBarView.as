@@ -220,15 +220,13 @@ package view{
 		}
 		private function scrubberDown(e:MouseEvent):void {
 			//_scrubber.startDrag(false,new Rectangle(95,3,_maxLength-7,0));
-			if(!_model.isAdContent)
-			{
+			if(!_model.isAdContent){
 				_scrubber.startDrag(false,new Rectangle(1,-7,_maxLength-7,0));
 				_dragging = true;
 			}
 		}
 		private function scrubberUp(e:MouseEvent):void {
-			if(!_model.isAdContent)
-			{
+			if(!_model.isAdContent){
 				_scrubber.stopDrag();
 				//var t:Number = (_scrubber.x - 95) * _model.streamLength / (_maxLength -7);
 				var t:Number = (_scrubber.x - 1) * _model.streamLength / (_maxLength - 7);
@@ -312,12 +310,10 @@ package view{
 			}
 		}
 		private function progressHandler(e:Event):void {
-			if(_model.isAdContent)
-			{
+			if(_model.isAdContent){
 				enable(false);
 			}
-			else
-			{
+			else{
 				enable(true);
 			}
 			

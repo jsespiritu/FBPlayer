@@ -173,7 +173,8 @@ package {
 	public class AkamaiMultiPlayer extends MovieClip implements IOvpPlayer {
 
 		private var _model:Model;
-		private var _playlist:PlaylistView;
+		//private var _playlist:PlaylistView;
+		//private var _overlayPlaylist:OverlayPlaylistView;
 		private var _controlbar:ControlbarView;
 		private var _background:BackgroundView;
 		private var _videoView:VideoView;
@@ -183,13 +184,12 @@ package {
 		// added by jerwin s. espiritu
 		private var _pixelView:PixelView;
 		private var _groupList:GroupListView;
-		private var _playlistHorizontal:PlaylistHorizontalView;
+		//private var _playlistHorizontal:PlaylistHorizontalView;
 		private var _popUpView:PopUpView;
 		private var _captionView:CaptionView;
 		private var _apiResponse:String;
 		// -------------- end
-		
-		
+				
 		private var _debugPanel:DebugPanelView;
 		private var _errorDisplay:ErrorDisplayView;
 		private var _adMC:MovieClip;
@@ -221,11 +221,11 @@ package {
 		 * @paramstarting height of the player
 		 * @paramflashvars - the loaderInfo.parameters object passed in from the HTML wrapper
 		 */
-		public function AkamaiMultiPlayer( width : Number = 774 , height : Number = 473 , flashvars : Object = null , link:String = "" ):void 
+		public function AkamaiMultiPlayer( width : Number = 774 , height : Number = 473 , flashvars : Object = null , link:String = "", token:String = "" ):void 
 		{			
 			_flashvars = flashvars;
 									
-			init( _flashvars == null ? new Object() : _flashvars , width , height , link);
+			init( _flashvars == null ? new Object() : _flashvars , width , height , link, token);
 			createChildren();
 			resize( null );
 
@@ -317,8 +317,8 @@ package {
 			_model.debug( msg );
 		}
 
-		private function init( flashvars : Object , width : Number , height : Number, link:String):void {						
-			_model = new Model(flashvars, link);
+		private function init( flashvars : Object , width : Number , height : Number, link:String, token:String):void {						
+			_model = new Model(flashvars, link, token);
 			_model.addEventListener( _model.EVENT_LOAD_UI , loadUIhandler );
 			_model.addEventListener( _model.EVENT_TOGGLE_FULLSCREEN , toggleFullscreenHandler );
 			_model.addEventListener( _model.EVENT_RESIZE , resizeHandler );
@@ -588,11 +588,16 @@ package {
 			_captionView = new CaptionView(_model);
 			addChild(_captionView);
 			
-			if (_model.hasPlaylist) {
+/*			if (_model.hasPlaylist) {
 				_playlistHorizontal=new PlaylistHorizontalView(_model);
 				addChild( _playlistHorizontal );
 			}
-			
+*/
+/*			if (_model.hasPlaylist) {
+				_playlistHorizontal=new PlaylistHorizontalView(_model);
+				addChild( _playlistHorizontal );
+			}
+*/			
 			// --------------------end
 
 			_controlbar=new ControlbarView(_model);
@@ -825,18 +830,18 @@ package {
 					dispatchEvent( new Event( "playStart" ));
 					
 					//pausePlayer();
-					if(!_model.isAdContent){
-						if(!_model.tickerDone){
+					//if(!_model.isAdContent){
+						//if(!_model.tickerDone){
 							//_video.visible = false
-							var minuteTimer:Timer = new Timer(1000, _model.timeInterval);
-							minuteTimer.addEventListener(TimerEvent.TIMER, onTick);
-							minuteTimer.addEventListener(TimerEvent.TIMER_COMPLETE, onTimerComplete);
-							minuteTimer.start();
-						}
-						else {
+							//var minuteTimer:Timer = new Timer(1000, _model.timeInterval);
+							//minuteTimer.addEventListener(TimerEvent.TIMER, onTick);
+							//minuteTimer.addEventListener(TimerEvent.TIMER_COMPLETE, onTimerComplete);
+							//minuteTimer.start();
+						//}
+						//else {
 							_video.visible = true;
-						}						
-					}
+						//}						
+					//}
 					_model.play();
 				}
 			}
@@ -877,12 +882,12 @@ package {
 				pausePlayer();
 				stopPlayback();
 			}
-			else
-			{
-				var minuteTimer:Timer = new Timer(1000, _model.timeInterval);
-				minuteTimer.addEventListener(TimerEvent.TIMER, onTick);
-				minuteTimer.addEventListener(TimerEvent.TIMER_COMPLETE, onTimerComplete);
-				minuteTimer.start();
+			//else
+			//{
+				//var minuteTimer:Timer = new Timer(1000, _model.timeInterval);
+				//minuteTimer.addEventListener(TimerEvent.TIMER, onTick);
+				//minuteTimer.addEventListener(TimerEvent.TIMER_COMPLETE, onTimerComplete);
+				//minuteTimer.start();
 				//if(_model.playlistItems)
 				//{
 					//for(var j:uint = 0; j < _model.playlistItems.length; j++){
@@ -890,7 +895,7 @@ package {
 						//if(ItemTO(_model.playlistItems[j]).media.getContentAt(0).url == _model.src){}
 					//}
 				//}
-			}
+			//}
 		}
 
 		private function volumeChangeHandler( e : Event ):void {

@@ -43,6 +43,8 @@ package view{
 	import flash.system.LoaderContext;
 	import org.openvideoplayer.rss.*;
 	// use for calling javascript function
+	import flash.net.URLRequest;
+	import flash.net.navigateToURL;
 	import flash.external.ExternalInterface;
 
 	/**
@@ -83,18 +85,21 @@ package view{
 */		
 		private var _volumeSlider:VolumeSliderView;
 		private var _TFClogo:TFClogo = new TFClogo();
+		// overlay button
+		private var _overlayPlayButton:PlayButtonOverlay;
+		public var _overlayPauseButton:PauseButtonOverlay;		
 		
 		// ----------------------- end 
 
 		public function ControlbarView(model:Model):void {
 			_model = model;
 			_model.addEventListener(_model.EVENT_PROGRESS, progressiveUpdate);
+			_model.addEventListener(_model.EVENT_END_OF_ITEM, endOfItemHandler);
 			_model.addEventListener(_model.EVENT_RESIZE, resize);
 			_model.addEventListener(_model.EVENT_SHOW_CONTROLS, showHandler);
 			_model.addEventListener(_model.EVENT_HIDE_CONTROLS, hideHandler);
 			_model.addEventListener(_model.EVENT_HIDE_FULLSCREEN, fullscreenHandler);
 			_model.addEventListener(_model.EVENT_SHOW_PAUSE, showPauseHandler);
-			_model.addEventListener(_model.EVENT_END_OF_ITEM, endOfItemHandler);
 			_model.addEventListener(_model.EVENT_ENABLE_CONTROLS, enableHandler);
 			_model.addEventListener(_model.EVENT_DISABLE_CONTROLS, disableHandler);
 			_controller = new ControlbarController(_model,this);
@@ -134,14 +139,17 @@ package view{
 		}
 		
 		private function progressiveUpdate(e:Event){
-			if(_model.endOfShow)
-			{
+			if(int(_model.time) > _model.videoEndPoint + (_model.videoStartPoint < 6 ? _model.videoStartPoint -1 : 0)){
+				_overlayPauseButton.visible = false;
+			}
+			if(_model.endOfShow){
 				_controller.pause();
-				//_replayButton.visible = true;
 				_playButton.visible = true;
 				_pauseButton.visible = false;
 				_pauseButton.mouseEnabled = false;
 				_playButton.mouseEnabled = false;
+				_overlayPauseButton.visible = false;
+				_overlayPlayButton.visible = false;
 			}
 			else
 			{
@@ -171,6 +179,27 @@ package view{
 			_themeTransform.color = _model.themeColor;
 			_b6b6b6Transform = new ColorTransform();
 			_b6b6b6Transform.color = 0xB6B6B6;
+
+			// Add play Button Overlay
+			_overlayPlayButton = new PlayButtonOverlay();
+			_overlayPlayButton.addEventListener(MouseEvent.CLICK, doPlay);
+			_overlayPlayButton.buttonMode = true;
+			_overlayPlayButton.x = (_model.width / 2);
+			_overlayPlayButton.y = -(_model.height / 2);
+			_overlayPlayButton.alpha = .5;
+			_overlayPlayButton.visible = true;
+			_container.addChild(_overlayPlayButton);
+			
+			// Add pause Button Overlay
+			_overlayPauseButton = new PauseButtonOverlay();
+			_overlayPauseButton.addEventListener(MouseEvent.CLICK, doPause);
+			_overlayPauseButton.buttonMode = true;
+			_overlayPauseButton.x = (_model.width / 2);
+			_overlayPauseButton.y = -(_model.height / 2);
+			_overlayPauseButton.alpha = .5;
+			_overlayPauseButton.visible = true;
+			_container.addChild(_overlayPauseButton);
+			
 			// Add playbutton
 			_playButton = new PlayButton();
 			_playButton.addEventListener(MouseEvent.MOUSE_DOWN,genericMouseDown);
@@ -179,7 +208,9 @@ package view{
 			_playButton.x = 10;
 			_playButton.y = 6;
 			_playButton.visible = !_model.autoStart;
+			_playButton.buttonMode = true;
 			_container.addChild(_playButton);
+
 			// Add pausebutton
 			_pauseButton = new PauseButton();
 			_pauseButton.addEventListener(MouseEvent.MOUSE_DOWN,genericMouseDown);
@@ -188,9 +219,12 @@ package view{
 			_pauseButton.x = 10;
 			_pauseButton.y = 6;
 			_pauseButton.visible = _model.autoStart;
+			_pauseButton.buttonMode = true;
 			_container.addChild(_pauseButton);
 			// add TFC Logo
 			_TFClogo.y = 10;
+			_TFClogo.addEventListener(MouseEvent.CLICK, navigateToPage);
+			_TFClogo.buttonMode = true;
 			_container.addChild(_TFClogo);
 			//Add fullscreen button
 			_fullscreenButton = new FullscreenButton();
@@ -199,6 +233,7 @@ package view{
 			_fullscreenButton.addEventListener(MouseEvent.CLICK,toggleFullscreen);
 			_fullscreenButton.y = 6;
 			_fullscreenButton.visible = _model.enableFullscreen;
+			_fullscreenButton.buttonMode = true;
 			_container.addChild(_fullscreenButton);
 			//Add share button
 			_shareButton = new ShareButton();
@@ -227,12 +262,14 @@ package view{
 				_playButton.visible = false;
 				_pauseButton.visible = false;
 				_pauseButton.width = 0;
+				_overlayPlayButton.visible = false;
+				_overlayPauseButton.visible = false;
 			}
 			// -------------- end
 			// Add tooltip
 			_toolTip = new ToolTipView(_model);
-			_toolTip.register(_fullscreenButton, "Full Screen");
 /*			
+			_toolTip.register(_fullscreenButton, "Full Screen");			
 			_toolTip.register(_cinemaModeButton, "Cinema Mode");
 			_toolTip.register(_subtitleButton, "Subtitle");
 			_toolTip.register(_popOutButton, "Pop out");
@@ -244,7 +281,7 @@ package view{
 */			
 			_container.addChild(_toolTip);
 		}
-		
+				
 		// added by jerwin s. espiritu				
 //		private function replay(e:MouseEvent):void{
 //			_playButton.visible = false;
@@ -276,15 +313,21 @@ package view{
 			e.currentTarget.icon.transform.colorTransform = _b6b6b6Transform;
 		}
 		private function doPlay(e:MouseEvent):void {
+			_overlayPlayButton.visible = false;
+			_overlayPauseButton.visible = true;
 			_playButton.visible = false;
 			_pauseButton.visible = true;
 			_controller.play();			
 		}
 		private function doPause(e:MouseEvent):void {
+			_overlayPlayButton.visible = true;
+			_overlayPauseButton.visible = false;
 			_playButton.visible = true;
 			_pauseButton.visible = false;
-			_controller.pause();
-			
+			_controller.pause();			
+		}
+		private function navigateToPage(e:MouseEvent):void {
+			navigateToURL( new URLRequest( "http://beta.tfctvapp.com/" ) , "_blank" );
 		}
 /*		
 		private function togglePlaylist(e:MouseEvent):void {
@@ -299,6 +342,9 @@ package view{
 		}
 		private function endOfItemHandler(e:Event):void {	
 			_model.playCount = _model.playCount + 1;
+			_overlayPauseButton.visible = false;
+			_overlayPlayButton.visible = false;
+			
 			if(_model.playCount > 1)
 			{
 				_model.seek(0);
@@ -316,8 +362,10 @@ package view{
 				_pauseButton.visible = true;				
 			}
 		}
-		private function  showHandler(e:Event):void {
+		private function showHandler(e:Event):void {
 			this.visible = true;
+			_overlayPlayButton.visible = (_playButton.visible)?true:false;
+			_overlayPauseButton.visible = (_pauseButton.visible)?true:false;
 		}
 		private function  hideHandler(e:Event):void {
 			this.visible = false;
