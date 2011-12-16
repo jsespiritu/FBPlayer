@@ -212,12 +212,14 @@ package view{
 			if (_muteState) {
 				_volumeIcon.transform.colorTransform = new ColorTransform(1,1,1,1,0);
 				_muteState = false;
+				_model.muteState = false;
 				_controller.setVolume(_lastVolume/100);
 				//implementClick(Math.round(_lastVolume*100));
 
 			} else {
 				_volumeIcon.transform.colorTransform = new ColorTransform(1,1,1,1,200);
 				_muteState = true;
+				_model.muteState = true;
 				_lastVolume = _model.volume;
 				implementClick(0);
 			}

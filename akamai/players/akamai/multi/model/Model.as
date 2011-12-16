@@ -46,6 +46,8 @@ package model {
 	import ui.ClickSound;
 	
 	import org.openvideoplayer.rss.*;
+	import com.adobe.serialization.json.*;
+	import com.adobe.serialization.json.JSONDecoder;
 	
 	
 	[Event (name="cuepoint", type="org.openvideoplayer.events.OvpEvent")]
@@ -113,7 +115,7 @@ package model {
 		public var _overideSrc:String = "";
 		public var currentPixelSetting:String;		
 		public var isPlayable:Boolean;
-		public var isLogin:Boolean;
+		public var isLoggedIn:Boolean;
 		public var refer:String;
 		public var comment:Array;
 		public var commentFontSize:Number;
@@ -122,7 +124,7 @@ package model {
 		public var commentWidth:Number;
 		public var overrideAutoStart:Number = 0;
 		public var isDynamic:Boolean = false;
-		public var timeInterval:Number = 2; // << -----  time interval before it play
+		public var timeInterval:Number = 5; // << -----  time interval before it play
 		public var tickerDone:Boolean =false; // << ---  tagging if ticker is done
 		public var directPlay:Boolean = false;
 		public var singleItemInXML:Boolean;
@@ -136,7 +138,19 @@ package model {
 		public var videoEndPoint:Number = 60;
 		public var isSkipDone:Boolean = false;
 		public var tokenParam:String;
+		public var muteState:Boolean = false;
+		public var isGeoIpAllowed:Boolean = true;
+		public var videoId:String = "0";
+		public var userId:String = "FacebookUser";
+		public var geoIpUrl:String = "http://204.93.205.209/GeoIpAPI/geoip_api.php"; /* geoip catcher */
+		public var geoIpHandler:String = "http://dev.tfctvapp.com/ajax/handler"; /* geoip papi handler */
+		public var enableGeoIpRestriction:Boolean = false; /* geoip restriction switch */
+		public var defVideoWidth:Number = 800;
+		public var defVideoHeight:Number = 600;
+		public var tfcLink = "http://beta.tfctvapp.com";
 
+		/* ends here ----------------   */
+		
 		public const EVENT_TOGGLE_PIXEL:String = "EVENT_TOGGLE_PIXEL";
 		public const EVENT_SHOW_PIXEL_SELECTION:String = "EVENT_SHOW_PIXEL_SELECTION";
 		public const EVENT_HIDE_PIXEL_SELECTION:String = "EVENT_HIDE_PIXEL_SELECTION";
@@ -153,12 +167,22 @@ package model {
 		public const VIDEO_360P:String = "360";
 		public const VIDEO_480P:String = "480";
 
+		// HD Error constants
+		public const ERROR_STREAM_NOT_FOUND:String = "STREAM NOT FOUND";
+		public const ERROR_TRACK_NOT_FOUND:String = "TRACK NOT FOUND";
+		public const ERROR_SEEK_OUT_OF_BOUNDS:String = "SEEK OUT OF BOUND";
+		public const ERROR_AUTHENTICATION_FAILED:String = "AUTHENTICATION FAILED";
+		public const ERROR_DVR_DISABLED:String = "DVR DISABLED";
+		public const ERROR_INVALID_BITRATE_TEST:String = "INVALID BITRATE TEST";
+		public const ERROR_RTMP_FALLBACK:String = "RTMP FALLBACK";
+
+		public const ERROR_COUNTRY_NOT_ALLOWED:String = "This video is not available in your country";
 		// -------- end --------------
 		
 		//Declare private constants
 		//private const DEFAULT_FRAMECOLOR:String = "333333";
-		private const DEFAULT_FRAMECOLOR:String = "202020";
-		private const DEFAULT_BACKGROUNDCOLOR:String = "202020";
+		private const DEFAULT_FRAMECOLOR:String = "FFFFFF";
+		private const DEFAULT_BACKGROUNDCOLOR:String = "FFFFFF";
 		private const DEFAULT_CONTROLBAR_FONT_COLOR:String = "CCCCCC";
 		private const DEFAULT_THEMECOLOR:String = "CCCCCC";
 		private const DEFAULT_ISOVERLAY:Boolean = false;
@@ -228,15 +252,6 @@ package model {
 		public const ERROR_NETSTREAM_FAILED:String = "ERROR_NETSTREAM_FAILED";
 		public const ERROR_TIME_OUT_CONNECTING:String = "ERROR_TIME_OUT_CONNECTING";
 		
-		// HD Error constants
-		public const ERROR_STREAM_NOT_FOUND:String = "STREAM NOT FOUND";
-		public const ERROR_TRACK_NOT_FOUND:String = "TRACK NOT FOUND";
-		public const ERROR_SEEK_OUT_OF_BOUNDS:String = "SEEK OUT OF BOUND";
-		public const ERROR_AUTHENTICATION_FAILED:String = "AUTHENTICATION FAILED";
-		public const ERROR_DVR_DISABLED:String = "DVR DISABLED";
-		public const ERROR_INVALID_BITRATE_TEST:String = "INVALID BITRATE TEST";
-		public const ERROR_RTMP_FALLBACK:String = "RTMP FALLBACK";
-
 		// Src types
 		public const TYPE_AMD_ONDEMAND:String = "TYPE_AMD_ONDEMAND";
 		public const TYPE_AMD_LIVE:String = "TYPE_AMD_LIVE";
@@ -268,16 +283,16 @@ package model {
 			//flashvars.src="http://tfctvhdflashsg-f.akamaihd.net/z/mp4/20110409-mmk1-,500,800,1000,1300,1500,.mp4.csmil/manifest.f4m";
 			//flashvars.src="http://mediapm.edgesuite.net/edgeflash/public/debug/assets/smil/nelly2.smil";
 			//flashvars.src="http://tfctvprogflashsg.edgesuite.net/smil/AB08242010.smil";
-			//flashvars.src="http://o1-f.akamaihd.net/z/movietrailers/onemorechance/onemorechance-,300000,500000,800000,1000000,1300000,1500000,.mp4.csmil/manifest.f4m";
-			//flashvars.src="http://o1-f.akamaihd.net/z/freeview/magingsinokaman/maginsinokaman(johnlloyd)-,300000,500000,800000,1000000,1300000,1500000,.mp4.csmil/manifest.f4m";
-			//flashvars.src="http://localhost/videos/content/20100920-alyna4_sol-240.flv";
-			//flashvars.src="http://localhost/test/fb_playlist.xml";
+			//flashvars.src="http://o1-f.akamaihd.net/z/movietrailers/danothers/danothers-,300000,500000,800000,1000000,1300000,1500000,.mp4.csmil/manifest.f4m";
+			//flashvars.src="rmtp://s16.castamp.com/live";
+			//flashvars.src="http://localhost/test/xml/fb_playlist.xml";
 			tokenParam = token;
 			flashvars.mode = "overlay";
 			flashvars.isPlayable = "1";
-			flashvars.isLogin = "1";
-			//flashvars.startTime = "5";
-			//flashvars.endTime = "15";
+			//flashvars.isLoggedIn = "1";
+			//flashvars.videoId = "990";
+			//flashvars.startTime = "10";
+			//flashvars.endTime = "20";
 			//flashvars.maxPlayingTime = "0";
 			//flashvars.trackNo = "8";
 			//flashvars.timeInterval = "10";
@@ -289,6 +304,13 @@ package model {
 			flashvars.commentX = "400";
 			flashvars.commentY = "15";
 */
+
+			/* JSON Decode */
+//			var s:String = "[{\"name\":\"jerwin\",\"url\":\"http:\/\/jerwin.com\"},{\"name\":\"espiritu\",\"url\":\"http:\/\/espiritu.com\"}]";
+//			var j:JSONDecoder = new JSONDecoder(s,true);
+//			var v:* = j.getValue();
+//			trace("------------------------->>> " + v[0].url);
+			/* End of sample JSON Decode*/
 
 			// SAMPLE CAPTION MESSAGE
 			var c:Array = new Array();
@@ -323,7 +345,7 @@ package model {
 			_overideSrc = flashvars.src == undefined?"":unescape(flashvars.src.toString());
 			_forcePlayIndex = flashvars.trackNo == undefined ? "":flashvars.trackNo;
 			isPlayable = flashvars.isPlayable == undefined || flashvars.isPlayable == "1"? true:false;
-			isLogin = flashvars.isLogin == undefined || flashvars.isLogin == "0" ? false:true;
+			isLoggedIn = flashvars.isLoggedIn == undefined || flashvars.isLoggedIn == "0" ? false:true;
 			isAdContent = flashvars.isAdContent == undefined || flashvars.isAdContent == "0" ? false:true;
 			refer = flashvars.refer == undefined ? "":flashvars.refer.toString();
 			commentFontSize = flashvars.commentFontSize == undefined? 15 : int(flashvars.commentFontSize.toString());
@@ -332,8 +354,13 @@ package model {
 			commentWidth= flashvars.commentWidth == undefined? 600 : int(flashvars.commentWidth.toString());
 			timeInterval = flashvars.timeInterval == undefined ? timeInterval:flashvars.timeInterval;
 			maxPlayingTime = flashvars.allowPlayingTime == undefined ? maxPlayingTime : Number(flashvars.allowPlayingTime.toString());
+			videoId = flashvars.videoId == undefined ? videoId : flashvars.videoId;
+			userId = flashvars.userId == undefined ? userId : flashvars.userId;
 			videoStartPoint = flashvars.startTime == undefined ? videoStartPoint : Number(flashvars.startTime.toString());
 			videoEndPoint = flashvars.endTime == undefined ? videoEndPoint : Number(flashvars.endTime.toString());
+			enableGeoIpRestriction = flashvars.enableGeoIp == undefined ? enableGeoIpRestriction : (Number(flashvars.enableGeoIp) > 0)?true:false;
+			
+			
 			// ---- end
 			//
 			// call login modal
@@ -669,8 +696,7 @@ package model {
 			textFormat.font= new AkamaiArial().fontName;
 			textFormat.color = hex(_controlbarFontColor);
 			textFormat.align = TextFormatAlign.CENTER;
-			return textFormat;
-			
+			return textFormat;			
 		}
 		public function get maxBandwidth():Number {
 			return _maxBandwidth;
@@ -703,17 +729,17 @@ package model {
 /*			if(overrideAutoStart > 0){
 				_autoStart = overrideAutoStart%2?true:false;
 			}
-*/			if(isLogin){
+*/			//if(isLoggedIn){
 				if(isPlayable){
 					return _autoStart;
 				}
 				else{
 					return false;
 				}
-			}
-			else{
-				return false;
-			}
+			//}
+			//else{
+			//	return false;
+			//}
 			//return (isPlayable?_autostart:false);
 		}
 		public function get loadImage():String {
@@ -967,6 +993,7 @@ package model {
 				if(_items != null){
 					for(var j:uint=0; j < _items.length; j++){
 						
+						trace("--------------------->> " + ItemTO(_items[j]).media.getContentAt(0).url);
 						if(ItemTO(_items[j]).media.getContentAt(0).url == _src){
 							if(ItemTO(_items[j]).description == "adcontent"){
 								isAdContent = true;
@@ -1016,7 +1043,7 @@ package model {
 					isDynamic = true;
 				} else if (protocol == "http") {
 					_srcType = TYPE_AMD_PROGRESSIVE;
-				} else if (protocol == "" && (extension == "rss" || extension == "xml" || splitExtension == "com" )) {
+				} else if (protocol == "" && (extension == "rss" || extension == "xml" || splitExtension == "com" )) {					
 					_srcType = TYPE_MEDIA_RSS;
 				} else if (protocol == "" && (extension == "flv" || extension == "mp4" || extension == "mov" || extension == "fv4" || extension == "f4v" || extension == "3gp")) {
 					_srcType = TYPE_AMD_PROGRESSIVE;
@@ -1041,9 +1068,37 @@ package model {
 						sendEvent(EVENT_LOAD_UI)
 					}
 				}
+			}				
+		} /* end of parsesource function*/
+		public function getDateTime():String // buid timestamp
+		{
+			var time:Date = new Date(); // time object
+			var year = time.getFullYear();
+			var month = time.getMonth() + 1;
+			var date = time.getDate();
+			var seconds = time.getSeconds();
+			var minutes = time.getMinutes();
+			var hours = time.getHours();
+			var dateTime:String = "";
+			if(month<10){
+				month = "0" + month;
 			}
-				
-		}
-
-	}
+			if(date<10){
+				date = "0" + date;
+			}			
+			if(hours<10){
+				hours = "0" + hours;
+			}
+			if(minutes<10){
+				minutes = "0" + minutes;
+			}
+			if(seconds<10){
+				seconds = "0" + seconds;
+			}
+			// date format (yyyy-mm-dd HH:mm:ss)
+			dateTime = year + "-" + month + "-" + date + " " + hours + ":" + minutes + ":" + seconds;
+			return dateTime;			
+		} /* end of getTime function */
+		
+	} /* end of Model Class*/
 }

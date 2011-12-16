@@ -78,7 +78,10 @@ package
 		private var _src:String;
 		private var _userId:String;
 		private var _clock_txt:String;
-		private var _tokenAPI:String = "http://abscbnhttp.streamguys.com/playerbeta/token/generate_token.php";
+		//private var _tokenAPI:String = "http://abscbnhttp.streamguys.com/playerbeta/token/generate_token.php";
+		private var _geoIpUrl:String = "http://tfc.tv/video/getip.php";
+		private var _tokenAPI:String = "http://204.93.205.209/AkamaiTokenGenerator/token/generate_token.php";
+		//private var _geoIpUrl:String = "http://204.93.205.209/GeoIpAPI/geoip_api.php";
 		private var _tokenDuration:String = "600";
 		private var _tokenAcl:String = "/*";
 		private var _tokenKey:String = "1cb57a04160477a119e57791f27a0706";
@@ -136,6 +139,12 @@ package
 				param['content_url'] = _src;
 				param['userId'] = _userId;
 				
+				/* reading file */
+//				var myTextLoader:URLLoader = new URLLoader();
+//				myTextLoader.addEventListener(Event.COMPLETE, onLoaded);
+//				myTextLoader.load(new URLRequest("http://tfc.tv/video/myText.xml"));
+				/* end reading file */
+				
 				if(_enableToken>0){
 					this.requestToken(param);
 				}
@@ -159,6 +168,13 @@ package
 				/* end of block */
             }
         }
+
+		/* Reading file*/
+//		private function onLoaded(e:Event):void {
+//    		var myArrayOfLines:Array = e.target.data.split(/\n/);
+//			trace("------------------>>>>> " + myArrayOfLines[1]);
+//		}
+		/* End reading file*/
 		
 		private function getTestMedia(playlist:Boolean = true):String
 		{
@@ -170,10 +186,8 @@ package
 			player.resizeTo(stage.stageWidth, stage.stageHeight);
 		}
         
-        private function handleFullscreen(e:Event):void
-        {
-            if (stage.displayState == StageDisplayState.NORMAL)
-            {
+        private function handleFullscreen(e:Event):void{
+            if (stage.displayState == StageDisplayState.NORMAL){
 				//remove stage listener here to during fullscreen
 				setStageListeners(onResize, false);
 				
@@ -193,8 +207,7 @@ package
 			}
         }
 		
-		function toggleFullScreen(event:MouseEvent):void
-		{
+		function toggleFullScreen(event:MouseEvent):void{
 			if (this.stage.displayState == StageDisplayState.FULL_SCREEN){
 				this.stage.displayState=StageDisplayState.NORMAL;
 			}
@@ -203,8 +216,7 @@ package
 			}
 		}				
         		
-        private function exitFullScreen(e:FullScreenEvent = null):void
-        {
+        private function exitFullScreen(e:FullScreenEvent = null):void{
             if (e && !e.fullScreen)
             {
 				//since we remove the stage listener on fullscreen we add it back here
@@ -214,16 +226,15 @@ package
             }
         }
 		
-		private function setStageListeners(handler:Function, add:Boolean = true):void
-		{
-			if (add)
-			{
+		private function setStageListeners(handler:Function, add:Boolean = true):void{
+			if (add){
 				stage.addEventListener(Event.RESIZE, handler);
-			}else
-			{
+			}
+			else{
 				stage.removeEventListener(Event.RESIZE, handler);
 			}
 		}
+		
 		public function requestToken(param:Array):void {			
 			var request:URLRequest = new URLRequest(param['tokenAPI']);
 			var variables:URLVariables = new URLVariables();
@@ -237,7 +248,7 @@ package
 			request.method = URLRequestMethod.GET;
 			urlloader.load(request);
 			urlloader.addEventListener(Event.COMPLETE, getToken);
-			urlloader.addEventListener(IOErrorEvent.IO_ERROR, getTokenIOError);			
+			urlloader.addEventListener(IOErrorEvent.IO_ERROR, getTokenIOError);
 			
 			var msg:String = "actiontype" + "~jhe~" + "requesttoken" + "|jhe|" +
 							  "content" + "~jhe~" + param['content_url'] + "|jhe|" +
@@ -245,7 +256,6 @@ package
 							  "datetime" + "~jhe~" + this.getDateTime() + "|jhe|" +
 							  "otherinfo" + "~jhe~" + "token_key:" + param['tokenKey'] + "\t" + "token_acl:" + param['tokenAcl'] + "\t" + "duration:" + param['tokenDuration'] + "\t" + "start_time:" + param['startTime']; 
 			if(_enableLogging>0) this.writeToLog(msg);
-			
 		}
 		
 		private function getToken(event:Event):void{
@@ -309,7 +319,7 @@ package
 		} /* end of writeToLog function */
 		
 		private function urlLoaderHandleComplete(event:Event):void{
-			var loader:URLLoader = URLLoader(event.target);			
+			var loader:URLLoader = URLLoader(event.target);
 			//player.debug("Done writing to Queue " + loader.data);
 		}
 		
@@ -317,8 +327,7 @@ package
 			//player.debug("Unable to write message to Queue.");
 		}
 		
-		private function getDateTime():String
-		{
+		private function getDateTime():String{
 			var time:Date = new Date(); // time object
 			var year = time.getFullYear();
 			var month = time.getMonth() + 1;

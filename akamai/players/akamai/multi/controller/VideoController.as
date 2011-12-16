@@ -37,6 +37,11 @@ package controller{
 	import flash.events.*;
 	import flash.media.SoundTransform;
 	import flash.net.NetConnection;
+	import flash.net.URLLoader;
+	import flash.net.URLRequest;
+	import flash.net.URLRequestMethod;
+	import flash.net.URLVariables;
+	import flash.net.URLRequestMethod;
 	import flash.net.NetStream;
 	import flash.utils.Timer;
 	
@@ -57,7 +62,12 @@ package controller{
 	import com.akamai.hdcore.samples.utility.Utils;		
 	import org.openvideoplayer.components.ui.controlbar.ControlBar;
 	import view.ControlbarView;
-	
+
+	/* JSON Deccder */
+	import com.adobe.serialization.json.*;
+	import com.adobe.serialization.json.JSONDecoder;
+	/* --- JSON Deccder */
+
 	/**
 	 * Akamai Multi Player - controller working in conjunction with the VideoView
 	 */
@@ -101,7 +111,9 @@ package controller{
 		private var _host:String;
 		private var _protocol:String;
 		
-		var _triggerCounter:Number = 0;
+		private var _triggerCounter:Number = 0;
+		private var _adCounter:Number = 0;
+		private var _preRollStarted:Boolean = false;
 		// -------------------
 
 		public function VideoController(model:Model,view:VideoView):void {
@@ -145,6 +157,7 @@ package controller{
 		}
 
 		private function newSourceHandler(e:Event):void {
+			
 			var protocol:String;
 			_view.video.clear();
 			
@@ -212,13 +225,30 @@ package controller{
 				case _model.TYPE_MBR_SMIL : /* Http Dynamic HD Streaming */
 					this.isHD = true;
 					this.isZStream = false;
-					connect(host, protocol);
+					if(_model.enableGeoIpRestriction){
+						_host = host;
+						_protocol = protocol;
+						this.getGeoIp(_model.src);
+					}
+					else{
+						_model.isGeoIpAllowed = true;
+						connect(host, protocol);							
+					}
 					break;
 				case _model.TYPE_ZSTREAM : /* Secure Zeri Streaming */
 					this.isHD = false;
 					this.isZStream = true;
-					connect(host, protocol);
-					_view.hideVideo();
+					_host = host;
+					_protocol = protocol;
+					if(_model.enableGeoIpRestriction){
+						_host = host;
+						_protocol = protocol;
+						this.getGeoIp(_model.src);
+					}
+					else{
+						_model.isGeoIpAllowed = true;
+						connect(_host, _protocol);							
+					}
 					break;
 			}
 		}
@@ -226,8 +256,7 @@ package controller{
 		// Handles a successful connection
 		private function connectedHandler():void {		
 			/* HD Connection Handler */
-			if(this.isHD)
-			{
+			if(this.isHD){
 				// if disconnected
 				if(!netConnection.connected){
 					netConnection = new NetConnection();
@@ -280,8 +309,7 @@ package controller{
 					}					
 					_model.directPlay = true;
 				}
-				else
-				{
+				else{
 					/* WITH PLAYLIST XML/RSS */
 					_model.singleItemInXML = (_model.playlistItems.length<2)?true:false;
 					_nshd.play.apply(this, playArgs);
@@ -501,13 +529,17 @@ package controller{
 		}
 
 		private function handleComplete(e:OvpEvent):void {
-			_ns.pause();
-			_ns.seek(0);
-			_model.endOfItem();
+			_view.displaySpinner(false);
+			if(_ns!=null){
+				_ns.pause();
+				_ns.seek(0);
+				_model.endOfItem();
+			}
 		}
 		// HD -----  
 		private function onComplete(event:HDEvent):void
 		{
+			_view.displaySpinner(false);
 			//_nshd.seek(0);
 			_model.endOfItem();
 			_nshd.pause();
@@ -598,8 +630,25 @@ package controller{
 //			_model.streamLength = Number(_nshd.duration);
 //		}
 		
+		private function displayPreroll():void{
+			if(!_preRollStarted){
+				_view.displayTFCPrerollAd(true);
+				_preRollStarted = true;
+				var minuteTimer:Timer = new Timer(1000, _model.timeInterval);
+				minuteTimer.addEventListener(TimerEvent.TIMER_COMPLETE, onTimerComplete);
+				minuteTimer.start();
+			}
+		}
+		
+        private function onTimerComplete(event:TimerEvent):void{
+			_view.displayTFCPrerollAd(false);
+			_model.tickerDone = true;
+			_model.playStart();
+        }		
+		
 		// Updates the UI elements as the  video plays
 		private function progressHandler(e:TimerEvent):void {
+			this.displayPreroll();
 			/* handle ad message count down */
 			if(_model.isAdContent){
 				var s:Number = Math.floor((_model.time%3600)%60);
@@ -612,15 +661,20 @@ package controller{
 			else{
 				_view.displayAdMessage(false);
 			}
-			if(!_model.isAdContent){				
-				if(_model.videoStartPoint < _model.streamLength && _model.videoStartPoint!=0){
+			
+			if(!_model.isAdContent && _model.tickerDone){
+				if(  _model.videoStartPoint < _model.streamLength && 
+				     _model.videoStartPoint!=0 && 
+				     _model.videoStartPoint != _model.videoEndPoint && 
+				     _model.videoStartPoint < _model.videoEndPoint
+				   ){
 					if(_model.videoStartPoint < 6){
 						if(int(_model.time) >= (_model.videoStartPoint + _model.videoStartPoint)-1){						
 							if(_nsz != null){
-								_nsz.volume = .5;
+								_nsz.volume = (_model.muteState)?0:_model.volume;
 							}
 							if(_nshd != null){
-								_nshd.volume = .5;
+								_nshd.volume = (_model.muteState)?0:_model.volume;
 							}							
 						}
 						else{
@@ -635,10 +689,10 @@ package controller{
 					else{
 						if(int(_model.time) >= _model.videoStartPoint){						
 							if(_nsz != null){
-								_nsz.volume = .5;
+								_nsz.volume = (_model.muteState)?0:_model.volume;
 							}
 							if(_nshd != null){
-								_nshd.volume = .5;
+								_nshd.volume = (_model.muteState)?0:_model.volume;
 							}
 						}
 						else{
@@ -657,6 +711,7 @@ package controller{
 								_model.pause();
 								_model.seek(_model.videoStartPoint);								
 								_view.replayButton.visible = false;
+								_view.replayButtonLink.visible = false;
 								_model.play();
 							}
 						}
@@ -675,13 +730,14 @@ package controller{
 								if(_nsz != null){
 									_nsz.volume = 0;
 								}
-								if(_nshd != null){									
+								if(_nshd != null){
 									_model.videoStartPointTagged = false;
-									_model.endOfShow = true;									
+									_model.endOfShow = true;
 									_model.pause();
 									_view.video.clear();
-									netConnection.close();
 									_view.replayButton.visible = true;
+									_view.replayButtonLink.visible = true;
+									netConnection.close();
 									_nshd.close();
 									_nshd = null;
 								}
@@ -695,7 +751,7 @@ package controller{
 									_nshd = null;										
 									_view.video.clear();
 									_view.replayButton.visible = true;
-								}
+									_view.replayButtonLink.visible = true;								}
 								else if (_ns != null){
 									_model.videoStartPointTagged = false;
 									_model.endOfShow = true;
@@ -703,6 +759,7 @@ package controller{
 									_model.pause();
 									_view.video.clear();
 									_view.replayButton.visible = true;
+									_view.replayButtonLink.visible = true;
 									_ak.close();
 									_ns.close();
 									_ns == null;
@@ -716,14 +773,15 @@ package controller{
 					
 				} /* by default video runs 60 sec (_model.videoStartPoint < _model.streamLength && _model.videoStartPoint!=0) */
 				else {
-					if(_model.time > _model.maxPlayingTime){						
+					if(_model.time >= _model.maxPlayingTime || _model.time >= _model.streamLength -1){
 						_model.endOfShow = true;
 						_model.streamLength = 0;
 						_model.seek(0);
 						_model.time = 0;
 						_model.pause();
-						_view.video.visible = false;
+						_view.video.clear();
 						_view.replayButton.visible = true;
+						_view.replayButtonLink.visible = true;
 						_triggerCounter = 0;
 					}
 					else{
@@ -736,6 +794,7 @@ package controller{
 			}
 			else{
 				_view.showVideo();
+				_model.pause();
 			}
 
 			if(!this.isHD && !this.isZStream){	
@@ -924,24 +983,24 @@ package controller{
 			_model.debug(e.info.code);
 			switch(e.info.code){
 				case "NetStream.Buffer.Empty":
-					//_view.displaySpinner(true);
+					_view.displaySpinner(true);
 				break;
 				case "NetStream.Seek.Notify":
-					//_view.displaySpinner(true);
+					_view.displaySpinner(true);
 				break;
 				case "NetStream.Play.Start":
-					//_view.displaySpinner(false);
-					if(!_model.tickerDone){
-						_model.tickerDone = true;
-						_model.pause();
-						_model.time=_model.videoStartPoint;
-						_model.play();
-					}
+					_view.displaySpinner(false);
+//					if(!_model.tickerDone){
+//						_model.tickerDone = true;
+//						_model.pause();
+//						_model.time=_model.videoStartPoint;
+//						_model.play();
+//					}
 				break;
 				case "NetStream.Buffer.Full":
 				break
 				default:
-					//_view.displaySpinner(false);
+					_view.displaySpinner(false);
 				break;
 			}
 		} /* --- hdNetStreamStatus */				
@@ -967,10 +1026,16 @@ package controller{
 			if (_view != null && _view.stage != null && _view.stage.displayState != StageDisplayState.FULL_SCREEN) {
 				_view.scaleVideo(Number(event.data.width), Number(event.data.height));
 			}
+			else{
+				_view.scaleVideo(_model.defVideoWidth, _model.defVideoHeight);
+			}
 		}		
 		private function handleMetaData(e:OvpEvent):void { // Handles akamai metadata that is released by the stream
 			if (_view != null && _view.stage != null && _view.stage.displayState != StageDisplayState.FULL_SCREEN) {
 				_view.scaleVideo(Number(e.data["width"]), Number(e.data["height"]));
+			}
+			else{
+				_view.scaleVideo(_model.defVideoWidth, _model.defVideoHeight);
 			}
 		}
 
@@ -1283,5 +1348,64 @@ package controller{
 				}
 			} /* -- Akamai Connection */
 		} /* -- Connection Handling */
+		/* call geoip API */
+		private function getGeoIp(src:String):void{
+			var playlist = _model.playlistItems;
+			var videoId:String = "";
+			if(playlist != null){
+				for(var j:uint=0; j < playlist.length; j++){
+					if(ItemTO(playlist[j]).media.getContentAt(0).url == src){
+						videoId = ItemTO(playlist[j]).videoId == "" ? _model.videoId : ItemTO(playlist[j]).videoId.toString();
+					}
+				}
+			}
+			else {
+				videoId = _model.videoId;
+			}
+			var request:URLRequest = new URLRequest(_model.geoIpUrl);
+			var variables:URLVariables = new URLVariables();
+			var urlloader:URLLoader = new URLLoader();
+			variables.methodType = "verifyIPAccess";
+			variables.vid = videoId;
+			variables.handler = _model.geoIpHandler;
+			request.data = variables;
+			request.method = URLRequestMethod.GET;
+			urlloader.load(request);
+			urlloader.addEventListener(Event.COMPLETE, callGeoIpAPI);
+			urlloader.addEventListener(IOErrorEvent.IO_ERROR, callGeoIpAPIIOError);			
+		} /* end of getGeoIp function */
+		private function callGeoIpAPI(event:Event):void{
+			var loader:URLLoader = URLLoader(event.target);	
+			var geoIpInfo:String = loader.data;
+			/* JSON Decode */
+			trace("geoip status : " + geoIpInfo);
+			var j:JSONDecoder = new JSONDecoder(geoIpInfo,true);
+			var info:* = j.getValue();
+			if(info.allowed != undefined){
+				if(Number(info.allowed) > 0){
+					_model.isGeoIpAllowed = true;
+					this.isHD = false;
+					this.isZStream = true;
+					connect(_host, _protocol);							
+				}
+				else{
+					_model.isGeoIpAllowed = false;
+					_model.showError(_model.ERROR_COUNTRY_NOT_ALLOWED);
+				}
+			}
+			else{
+				_model.showError("Unable to connect to GeoIp API");
+			}
+			
+//			var msg:String = "actiontype" + "~jhe~" + "responsegeoip" + "|jhe|" +
+//							  "content" + "~jhe~" + _model.src + "|jhe|" +
+//							  "userid" + "~jhe~" + _model.userId + "|jhe|" +
+//							  "datetime" + "~jhe~" + _model.getDateTime() + "|jhe|" +
+//							  "otherinfo" + "~jhe~" + "geoip_info:" + geoIpInfo; 
+//			_model.writeToLog(msg)
+		} /* end of callGeoIpAPI function */		
+		private function callGeoIpAPIIOError(event:IOErrorEvent):void {
+			_model.debug("Unable to generate token.");
+		} 
 	} /* -- class VideoController */
 } /* -- package */

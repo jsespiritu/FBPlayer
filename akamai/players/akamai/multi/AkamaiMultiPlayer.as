@@ -863,7 +863,7 @@ package {
 
         private function onTimerComplete(event:TimerEvent):void
         {
-			_model.tickerDone = true;
+			//_model.tickerDone = true;
             _model.play();
         }		
 		

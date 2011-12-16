@@ -183,27 +183,29 @@ package view{
 			// Add play Button Overlay
 			_overlayPlayButton = new PlayButtonOverlay();
 			_overlayPlayButton.addEventListener(MouseEvent.CLICK, doPlay);
+			_overlayPlayButton.addEventListener(MouseEvent.MOUSE_OVER, buttonMouseOver);
+			_overlayPlayButton.addEventListener(MouseEvent.MOUSE_OUT, buttonMouseOut);
 			_overlayPlayButton.buttonMode = true;
 			_overlayPlayButton.x = (_model.width / 2);
 			_overlayPlayButton.y = -(_model.height / 2);
-			_overlayPlayButton.alpha = .5;
-			_overlayPlayButton.visible = true;
+			_overlayPlayButton.alpha = .7;
+			_overlayPlayButton.visible = _model.isGeoIpAllowed?true:false;
 			_container.addChild(_overlayPlayButton);
 			
 			// Add pause Button Overlay
 			_overlayPauseButton = new PauseButtonOverlay();
 			_overlayPauseButton.addEventListener(MouseEvent.CLICK, doPause);
+			_overlayPauseButton.addEventListener(MouseEvent.MOUSE_OVER, buttonMouseOver);
+			_overlayPauseButton.addEventListener(MouseEvent.MOUSE_OUT, buttonMouseOut);
 			_overlayPauseButton.buttonMode = true;
 			_overlayPauseButton.x = (_model.width / 2);
 			_overlayPauseButton.y = -(_model.height / 2);
-			_overlayPauseButton.alpha = .5;
-			_overlayPauseButton.visible = true;
+			_overlayPauseButton.alpha = .7;
+			_overlayPauseButton.visible = _model.isGeoIpAllowed?true:false;
 			_container.addChild(_overlayPauseButton);
 			
 			// Add playbutton
 			_playButton = new PlayButton();
-			_playButton.addEventListener(MouseEvent.MOUSE_DOWN,genericMouseDown);
-			_playButton.addEventListener(MouseEvent.MOUSE_UP,genericMouseUp);
 			_playButton.addEventListener(MouseEvent.CLICK,doPlay);
 			_playButton.x = 10;
 			_playButton.y = 6;
@@ -213,8 +215,6 @@ package view{
 
 			// Add pausebutton
 			_pauseButton = new PauseButton();
-			_pauseButton.addEventListener(MouseEvent.MOUSE_DOWN,genericMouseDown);
-			_pauseButton.addEventListener(MouseEvent.MOUSE_UP,genericMouseUp);
 			_pauseButton.addEventListener(MouseEvent.CLICK,doPause);
 			_pauseButton.x = 10;
 			_pauseButton.y = 6;
@@ -292,10 +292,12 @@ package view{
 		// ------------------------ end
 		
 		private function buttonMouseOver(e:MouseEvent):void {
-				e.currentTarget.highlight.alpha = 1;
+			_overlayPlayButton.alpha = 1;
+			_overlayPauseButton.alpha = 1;
 		}
 		private function buttonMouseOut(e:MouseEvent):void {
-				e.currentTarget.highlight.alpha = 0;
+			_overlayPlayButton.alpha = .7;
+			_overlayPauseButton.alpha = .7;
 		}
 		private function genericMouseDown(e:MouseEvent):void {
 			e.currentTarget.x += 1;
@@ -314,20 +316,20 @@ package view{
 		}
 		private function doPlay(e:MouseEvent):void {
 			_overlayPlayButton.visible = false;
-			_overlayPauseButton.visible = true;
+			_overlayPauseButton.visible = _model.isGeoIpAllowed?true:false;
 			_playButton.visible = false;
 			_pauseButton.visible = true;
 			_controller.play();			
 		}
 		private function doPause(e:MouseEvent):void {
-			_overlayPlayButton.visible = true;
+			_overlayPlayButton.visible = _model.isGeoIpAllowed?true:false;
 			_overlayPauseButton.visible = false;
 			_playButton.visible = true;
 			_pauseButton.visible = false;
 			_controller.pause();			
 		}
 		private function navigateToPage(e:MouseEvent):void {
-			navigateToURL( new URLRequest( "http://beta.tfctvapp.com/" ) , "_blank" );
+			navigateToURL( new URLRequest( _model.tfcLink+"/video/"+_model.videoId ) , "_blank" );
 		}
 /*		
 		private function togglePlaylist(e:MouseEvent):void {
@@ -365,7 +367,7 @@ package view{
 		private function showHandler(e:Event):void {
 			this.visible = true;
 			_overlayPlayButton.visible = (_playButton.visible)?true:false;
-			_overlayPauseButton.visible = (_pauseButton.visible)?true:false;
+			_overlayPauseButton.visible = (_pauseButton.visible && !_model.endOfShow && _model.isGeoIpAllowed)?true:false;
 		}
 		private function  hideHandler(e:Event):void {
 			this.visible = false;
@@ -427,6 +429,12 @@ package view{
 			}
 			
 			var availableWidth:Number = _model.width - (_model.isOverlay ? 0:(_model.hasPlaylist && _model.playlistVisible) ? _model.playlistWidth+6:0) - 6;
+
+			// overlay postioning
+			_overlayPlayButton.x = (_model.width / 2);
+			_overlayPlayButton.y = -(_model.height - _model.controlbarHeight) / 2;
+			_overlayPauseButton.x = (_model.width / 2);
+			_overlayPauseButton.y = -(_model.height - _model.controlbarHeight) / 2;
 
 //			_playlistButton.width = 0;
 //			_playlistButton.visible = false;
