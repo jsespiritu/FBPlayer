@@ -909,8 +909,8 @@ package controller{
 		} /* -- HD Buffering */
 		
 		private function onZStreamBuffer(event:OvpEvent):void{	/* Zeri Buffering */		
-			if(event.data as Boolean){ // use this for debugging
-			//if(!event.data as Boolean){ // use this for production
+			//if(event.data as Boolean){ // use this for debugging
+			if(!event.data as Boolean){ // use this for production
 				//_view.showVideo();
 				_model.bufferFull();
 			}

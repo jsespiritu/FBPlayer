@@ -143,11 +143,14 @@ package model {
 		public var videoId:String = "0";
 		public var userId:String = "FacebookUser";
 		public var geoIpUrl:String = "http://204.93.205.209/GeoIpAPI/geoip_api.php"; /* geoip catcher */
-		public var geoIpHandler:String = "http://dev.tfctvapp.com/ajax/handler"; /* geoip papi handler */
+		private var _baseUrl = "http://www.tfc.tv";
+		public var geoIpHandler:String = _baseUrl + "/ajax/handler";
+		//public var geoIpHandler:String = "http://dev.tfctvapp.com/ajax/handler"; /* geoip papi handler */
 		public var enableGeoIpRestriction:Boolean = false; /* geoip restriction switch */
 		public var defVideoWidth:Number = 800;
 		public var defVideoHeight:Number = 600;
-		public var tfcLink = "http://beta.tfctvapp.com";
+		//public var tfcLink = "http://beta.tfctvapp.com";
+		public var tfcLink = "http://tfc.tv";
 
 		/* ends here ----------------   */
 		
@@ -277,12 +280,12 @@ package model {
 			//flashvars.src="http://products.edgeboss.net/download/products/content/demo/video/oomt/big_buck_bunny_700k.flv";
 			//flashvars.src="http://mediapm.edgesuite.net/ovp/content/demo/smil/elephants_dream.smil";
 			//flashvars.src="http://localhost/TFCHDPlayerBeta/akamai/grouplist1.xml";
-			//flashvars.src="http://o1-f.akamaihd.net/z/freeview/magingsinokaman/maginsinokaman(johnlloyd)-,300000,500000,800000,1000000,1300000,1500000,.mp4.csmil/manifest.f4m";
+			//flashvars.src="http://o1-f.akamaihd.net/z/movietrailers/onemorechance/onemorechance-,300000,500000,800000,1000000,1300000,1500000,.mp4.csmil/manifest.f4m";
 			//flashvars.src="http://localhost/test/fb_playlist.xml";
 			//flashvars.src="http://localhost/videos/content/ad.flv";
 			//flashvars.src="http://tfctvhdflashsg-f.akamaihd.net/z/mp4/20110409-mmk1-,500,800,1000,1300,1500,.mp4.csmil/manifest.f4m";
 			//flashvars.src="http://mediapm.edgesuite.net/edgeflash/public/debug/assets/smil/nelly2.smil";
-			//flashvars.src="http://tfctvprogflashsg.edgesuite.net/smil/AB08242010.smil";
+			//flashvars.src="http://o1-f.akamaihd.net/z/bnews/20111007/20111007-bnews1-,300000,500000,800000,1000000,1300000,1500000,.mp4.csmil/manifest.f4m";
 			//flashvars.src="http://o1-f.akamaihd.net/z/movietrailers/danothers/danothers-,300000,500000,800000,1000000,1300000,1500000,.mp4.csmil/manifest.f4m";
 			//flashvars.src="rmtp://s16.castamp.com/live";
 			//flashvars.src="http://localhost/test/xml/fb_playlist.xml";

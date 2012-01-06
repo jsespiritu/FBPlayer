@@ -80,12 +80,13 @@ package
 		private var _clock_txt:String;
 		//private var _tokenAPI:String = "http://abscbnhttp.streamguys.com/playerbeta/token/generate_token.php";
 		private var _geoIpUrl:String = "http://tfc.tv/video/getip.php";
-		private var _tokenAPI:String = "http://204.93.205.209/AkamaiTokenGenerator/token/generate_token.php";
+		//private var _tokenAPI:String = "http://204.93.205.209/AkamaiTokenGenerator/token/generate_token.php";
+		private var _tokenAPI:String = "http://204.93.205.209/AkamaiTokenGenerator/token/generate_token_v2.php";
 		//private var _geoIpUrl:String = "http://204.93.205.209/GeoIpAPI/geoip_api.php";
-		private var _tokenDuration:String = "600";
+		private var _tokenDuration:String = "1200";
 		private var _tokenAcl:String = "/*";
 		private var _tokenKey:String = "1cb57a04160477a119e57791f27a0706";
-		private var _qAPI:String = "http://log.solucientinc.com/q/write_to_queue.php";
+		private var _qAPI:String = "http://204.93.205.230/PlayerLog/write_to_queue.php";
 		private var _tokenParam = "";
 		private var _enableLogging:Number = 1;
 		private var _enableToken:Number = 1;
@@ -240,11 +241,11 @@ package
 			var variables:URLVariables = new URLVariables();
 			var urlloader:URLLoader = new URLLoader();
 			
-			variables.st = param['startTime'];
-			variables.key = param['tokenKey'];
-			variables.acl = param['tokenAcl'];
-			variables.duration = param['tokenDuration'];
-			request.data = variables;
+//			variables.st = param['startTime'];
+//			variables.key = param['tokenKey'];
+//			variables.acl = param['tokenAcl'];
+//			variables.duration = param['tokenDuration'];
+//			request.data = variables;
 			request.method = URLRequestMethod.GET;
 			urlloader.load(request);
 			urlloader.addEventListener(Event.COMPLETE, getToken);
